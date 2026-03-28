@@ -1,0 +1,15 @@
+{
+  "summary": "killed 0, scaled 0",
+  "killed": 0,
+  "scaled": 0,
+  "monitored": 0,
+  "errors": 0,
+  "details": {
+    "killed": [],
+    "scaled": [],
+    "monitored": [],
+    "errors": []
+  },
+  "status": "success",
+  "timestamp": "2026-03-28T23:33:36.605Z"
+}
