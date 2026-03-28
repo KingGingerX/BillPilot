@@ -1,0 +1,35 @@
+{
+  "summary": "57 trends from 5 sources",
+  "signals_found": 57,
+  "sources_attempted": 5,
+  "sources_failed": 0,
+  "results": [
+    {
+      "source": "tiktok",
+      "count": 0,
+      "status": "success"
+    },
+    {
+      "source": "google_trends",
+      "count": 0,
+      "status": "success"
+    },
+    {
+      "source": "reddit",
+      "count": 57,
+      "status": "success"
+    },
+    {
+      "source": "amazon",
+      "count": 0,
+      "status": "success"
+    },
+    {
+      "source": "etsy",
+      "count": 0,
+      "status": "success"
+    }
+  ],
+  "status": "success",
+  "timestamp": "2026-03-28T23:25:04.935Z"
+}

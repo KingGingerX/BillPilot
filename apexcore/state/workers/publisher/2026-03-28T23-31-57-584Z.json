@@ -1,0 +1,40 @@
+{
+  "summary": "published 0 assets",
+  "total": 10,
+  "published": 0,
+  "by_platform": {
+    "gumroad": {
+      "success": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "printify": {
+      "success": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "pinterest": {
+      "success": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "reddit": {
+      "success": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "youtube": {
+      "success": 0,
+      "failed": 0,
+      "skipped": 1
+    }
+  },
+  "errors": [
+    "gumroad: No Gumroad token configured",
+    "printify: Printify not configured",
+    "pinterest: Pinterest not configured",
+    "reddit: Reddit not configured"
+  ],
+  "status": "success",
+  "timestamp": "2026-03-28T23:31:57.584Z"
+}
