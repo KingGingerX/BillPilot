@@ -1,0 +1,349 @@
+// =============================================================
+// Passive Income Master System — Prisma Schema
+// PostgreSQL database with all revenue-generating entities.
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  AFFILIATE
+  SUBSCRIBER
+  USER
+}
+
+enum ProductType {
+  PDF
+  COURSE
+  TEMPLATE
+  SOFTWARE
+  BUNDLE
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ContentStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum ContentPlatform {
+  BLOG
+  TWITTER
+  FACEBOOK
+  INSTAGRAM
+  PINTEREST
+  EMAIL
+  LINKEDIN
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+// ── User ─────────────────────────────────────────────────────
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  role             Role     @default(USER)
+  isEmailVerified  Boolean  @default(false)
+  emailVerifyToken String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  orders           Order[]
+  subscription     Subscription?
+  affiliateProfile AffiliateProfile?
+  refreshTokens    RefreshToken[]
+  contentPosts     ContentPost[]
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ── Products ─────────────────────────────────────────────────
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  slug            String        @unique
+  description     String
+  longDescription String?
+  type            ProductType
+  status          ProductStatus @default(DRAFT)
+  priceInCents    Int           /// Price stored as cents to avoid floating point issues
+  stripePriceId   String?       /// Stripe Price object ID
+  stripeProductId String?       /// Stripe Product object ID
+  downloadUrl     String?       /// Encrypted S3/storage URL for digital delivery
+  coverImageUrl   String?
+  salesCount      Int           @default(0)
+  tags            String[]
+  metadata        Json?         /// Flexible extra data (pages, duration, etc.)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  orderItems      OrderItem[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([type])
+}
+
+// ── Orders ───────────────────────────────────────────────────
+
+model Order {
+  id                  String      @id @default(uuid())
+  userId              String
+  user                User        @relation(fields: [userId], references: [id])
+  status              OrderStatus @default(PENDING)
+  totalAmountInCents  Int
+  stripePaymentIntent String?
+  stripeSessionId     String?
+  affiliateCode       String?     /// Referral code used at checkout
+  ipAddress           String?
+  userAgent           String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  items               OrderItem[]
+  affiliateConversion AffiliateConversion?
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSessionId])
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id])
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  priceInCents Int
+  quantity     Int     @default(1)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ── Subscriptions ────────────────────────────────────────────
+
+model SubscriptionPlan {
+  id               String               @id @default(uuid())
+  name             String
+  slug             String               @unique
+  description      String
+  priceInCents     Int
+  intervalDays     Int                  /// 30=monthly, 365=annual
+  features         String[]
+  stripePriceId    String?
+  stripeProductId  String?
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  // Relations
+  subscriptions    Subscription[]
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  userId                 String             @unique
+  user                   User               @relation(fields: [userId], references: [id])
+  planId                 String
+  plan                   SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status                 SubscriptionStatus @default(TRIALING)
+  stripeSubscriptionId   String?            @unique
+  stripeCustomerId       String?
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean            @default(false)
+  canceledAt             DateTime?
+  trialEnd               DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([stripeSubscriptionId])
+  @@index([stripeCustomerId])
+}
+
+// ── Affiliate Marketing ──────────────────────────────────────
+
+model AffiliateProfile {
+  id              String     @id @default(uuid())
+  userId          String     @unique
+  user            User       @relation(fields: [userId], references: [id])
+  code            String     @unique  /// Short unique referral code
+  commissionRate  Float      @default(0.20) /// 20% default
+  totalEarnings   Int        @default(0)    /// Cents
+  pendingPayout   Int        @default(0)    /// Cents
+  totalPaid       Int        @default(0)    /// Cents
+  paypalEmail     String?    /// Encrypted in application layer
+  stripeAccountId String?    /// For Stripe Connect payouts
+  isApproved      Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  clicks          AffiliateClick[]
+  conversions     AffiliateConversion[]
+  payouts         AffiliatePayout[]
+
+  @@index([code])
+}
+
+model AffiliateClick {
+  id          String           @id @default(uuid())
+  profileId   String
+  profile     AffiliateProfile @relation(fields: [profileId], references: [id])
+  ipAddress   String
+  userAgent   String?
+  referrerUrl String?
+  landingPage String
+  createdAt   DateTime         @default(now())
+
+  @@index([profileId])
+  @@index([createdAt])
+}
+
+model AffiliateConversion {
+  id                String           @id @default(uuid())
+  profileId         String
+  profile           AffiliateProfile @relation(fields: [profileId], references: [id])
+  orderId           String           @unique
+  order             Order            @relation(fields: [orderId], references: [id])
+  commissionInCents Int
+  isPaid            Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+
+  @@index([profileId])
+}
+
+model AffiliatePayout {
+  id          String           @id @default(uuid())
+  profileId   String
+  profile     AffiliateProfile @relation(fields: [profileId], references: [id])
+  amountInCents Int
+  status      PayoutStatus     @default(PENDING)
+  method      String           /// "paypal" | "stripe"
+  reference   String?          /// Transaction reference from payment provider
+  processedAt DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([profileId])
+  @@index([status])
+}
+
+// ── Content / Marketing ──────────────────────────────────────
+
+model ContentPost {
+  id           String          @id @default(uuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  title        String
+  body         String          @db.Text
+  excerpt      String?
+  platform     ContentPlatform
+  status       ContentStatus   @default(DRAFT)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  slug         String?         @unique
+  tags         String[]
+  metadata     Json?           /// Platform-specific data (tweet ID, post URL, etc.)
+  aiGenerated  Boolean         @default(false)
+  errorMessage String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([platform])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ── Revenue Snapshots ────────────────────────────────────────
+
+model RevenueSnapshot {
+  id                     String   @id @default(uuid())
+  date                   DateTime @unique /// Daily snapshot
+  productRevenueCents    Int      @default(0)
+  subscriptionRevCents   Int      @default(0)
+  affiliateRevCents      Int      @default(0)
+  adRevenueCents         Int      @default(0)
+  totalRevenueCents      Int      @default(0)
+  newOrders              Int      @default(0)
+  newSubscriptions       Int      @default(0)
+  activeSubscriptions    Int      @default(0)
+  affiliateClicks        Int      @default(0)
+  affiliateConversions   Int      @default(0)
+  createdAt              DateTime @default(now())
+
+  @@index([date])
+}
+
+// ── Ad Revenue ───────────────────────────────────────────────
+
+model AdPlacement {
+  id            String   @id @default(uuid())
+  name          String
+  network       String   /// "google_adsense" | "mediavine" | "ezoic"
+  placementCode String   @db.Text /// Encrypted ad code
+  isActive      Boolean  @default(true)
+  pageViews     Int      @default(0)
+  clicks        Int      @default(0)
+  estimatedRev  Int      @default(0) /// Cents, updated by webhook/import
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
