@@ -45,6 +45,9 @@ export const config = {
     secretKey: required("STRIPE_SECRET_KEY"),
     webhookSecret: required("STRIPE_WEBHOOK_SECRET"),
     publishableKey: required("STRIPE_PUBLISHABLE_KEY"),
+    connectClientId: optional("STRIPE_CONNECT_CLIENT_ID"),
+    connectReturnUrl: optional("STRIPE_CONNECT_RETURN_URL"),
+    connectRefreshUrl: optional("STRIPE_CONNECT_REFRESH_URL"),
   },
 
   email: {

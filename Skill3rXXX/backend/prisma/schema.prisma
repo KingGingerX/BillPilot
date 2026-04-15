@@ -74,6 +74,13 @@ enum PayoutStatus {
   FAILED
 }
 
+enum ConnectStatus {
+  NOT_STARTED    /// Affiliate hasn't begun onboarding
+  ONBOARDING     /// Account created, onboarding link issued, not yet complete
+  ACTIVE         /// Account fully verified — payouts enabled
+  RESTRICTED     /// Account has restrictions (e.g. needs more info)
+}
+
 // ── User ─────────────────────────────────────────────────────
 
 model User {
@@ -231,9 +238,11 @@ model AffiliateProfile {
   totalEarnings   Int        @default(0)    /// Cents
   pendingPayout   Int        @default(0)    /// Cents
   totalPaid       Int        @default(0)    /// Cents
-  paypalEmail     String?    /// Encrypted in application layer
-  stripeAccountId String?    /// For Stripe Connect payouts
-  isApproved      Boolean    @default(false)
+  paypalEmail          String?       /// Encrypted in application layer
+  stripeAccountId      String?       @unique /// Stripe Connect account ID (acct_xxx)
+  stripeConnectStatus  ConnectStatus @default(NOT_STARTED)
+  payoutsEnabled       Boolean       @default(false) /// true once Stripe confirms charges_enabled
+  isApproved           Boolean       @default(false)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 

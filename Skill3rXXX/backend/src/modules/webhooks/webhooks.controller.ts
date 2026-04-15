@@ -9,6 +9,7 @@ import Stripe from "stripe";
 import { PrismaClient, SubscriptionStatus } from "@prisma/client";
 import { config } from "../../config";
 import { recordConversion } from "../affiliates/affiliates.service";
+import { syncAccountStatus } from "../affiliates/connect.service";
 import { sendEmail, orderConfirmTemplate } from "../../utils/email";
 import { logger } from "../../utils/logger";
 
@@ -64,6 +65,13 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
 
     case "customer.subscription.deleted":
       await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+      break;
+
+    // ── Stripe Connect account lifecycle ───────────────────────
+    case "account.updated":
+      // Fires whenever an affiliate's Express account changes status
+      // (e.g., finishes identity verification, gets restricted, etc.)
+      await syncAccountStatus(event.data.object as Stripe.Account);
       break;
 
     default:

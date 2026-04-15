@@ -117,6 +117,15 @@ export const affiliatesApi = {
   requestPayout: (method: string) => api.post("/affiliates/me/payout", { method }),
   updatePayout:  (data: object)   => api.patch("/affiliates/me/payout", data),
   adminList: ()               => api.get("/affiliates/admin/all"),
+
+  // Stripe Connect
+  connect: {
+    start:        ()           => api.post("/affiliates/connect/start"),
+    link:         ()           => api.get("/affiliates/connect/link"),
+    status:       ()           => api.get("/affiliates/connect/status"),
+    dashboard:    ()           => api.get("/affiliates/connect/dashboard"),
+    disconnect:   ()           => api.delete("/affiliates/connect"),
+  },
 };
 
 export const analyticsApi = {

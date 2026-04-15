@@ -126,7 +126,10 @@ export async function recordConversion(orderId: string) {
 const MIN_PAYOUT_CENTS = 5000;
 
 export async function requestPayout(userId: string, method: "paypal" | "stripe") {
-  const profile = await prisma.affiliateProfile.findUnique({ where: { userId } });
+  const profile = await prisma.affiliateProfile.findUnique({
+    where: { userId },
+    include: { payouts: false }, // just base fields — payoutsEnabled is now on the model
+  });
   if (!profile) throw new NotFoundError("Affiliate profile");
   if (!profile.isApproved) throw new ForbiddenError("Affiliate account not yet approved");
   if (profile.pendingPayout < MIN_PAYOUT_CENTS) {
@@ -139,22 +142,36 @@ export async function requestPayout(userId: string, method: "paypal" | "stripe")
   if (method === "paypal" && !profile.paypalEmail) {
     throw new AppError("PayPal email not configured", 400);
   }
-  if (method === "stripe" && !profile.stripeAccountId) {
-    throw new AppError("Stripe Connect account not configured", 400);
+  if (method === "stripe") {
+    if (!profile.stripeAccountId) {
+      throw new AppError("Stripe Connect account not connected — complete onboarding first", 400);
+    }
+    if (!profile.payoutsEnabled) {
+      throw new AppError("Stripe Connect account is not fully verified yet", 400);
+    }
   }
 
   const amount = profile.pendingPayout;
 
+  // Create the payout record and clear the pending balance atomically
   const [payout] = await prisma.$transaction([
     prisma.affiliatePayout.create({
       data: { profileId: profile.id, amountInCents: amount, method, status: PayoutStatus.PENDING },
     }),
     prisma.affiliateProfile.update({
       where: { id: profile.id },
-      data: { pendingPayout: 0 }, // Reset pending; actual transfer processed by admin job
+      data: { pendingPayout: 0 },
     }),
   ]);
 
+  // For Stripe Connect: execute the real transfer immediately
+  if (method === "stripe") {
+    const { executeTransfer } = await import("./connect.service");
+    await executeTransfer(payout.id); // updates payout status to PAID on success
+    return prisma.affiliatePayout.findUnique({ where: { id: payout.id } });
+  }
+
+  // For PayPal: payout stays PENDING — admin processes manually via /admin/payouts/:id/process
   return payout;
 }
 
