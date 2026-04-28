@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AffArmy — Affiliate Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .sidebar { width: 220px; height: 100vh; position: fixed; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 0; display: flex; flex-direction: column; }
+    .logo { padding: 0 20px 24px; font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; border-bottom: 1px solid var(--border); }
+    .logo span { color: var(--text); }
+    nav a { display: block; padding: 12px 20px; color: var(--muted); text-decoration: none; font-size: 14px; transition: all .15s; border-left: 3px solid transparent; }
+    nav a:hover, nav a.active { color: var(--text); background: rgba(99,102,241,.1); border-left-color: var(--accent); }
+    .main { margin-left: 220px; padding: 32px; }
+    h2 { font-size: 22px; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .card .value { font-size: 28px; font-weight: 700; }
+    .card .value.green { color: var(--green); }
+    .card .value.accent { color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge.active { background: rgba(16,185,129,.15); color: var(--green); }
+    .badge.paused { background: rgba(245,158,11,.15); color: var(--yellow); }
+    .badge.banned { background: rgba(239,68,68,.15); color: var(--red); }
+    .badge.found { background: rgba(99,102,241,.1); color: var(--accent); }
+    .badge.contacted { background: rgba(245,158,11,.1); color: var(--yellow); }
+    .badge.approved { background: rgba(16,185,129,.1); color: var(--green); }
+    .badge.rejected { background: rgba(239,68,68,.1); color: var(--red); }
+    .btn { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+    .section-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .section-header h3 { font-size: 15px; }
+    .section-body { padding: 0; overflow-x: auto; }
+    .chart-wrap { height: 180px; padding: 20px; }
+    canvas { width: 100% !important; }
+    input, select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
+    input:focus, select:focus { border-color: var(--accent); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; }
+    .modal h3 { margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; }
+    textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--muted); }
+    .tab.active { background: rgba(99,102,241,.15); color: var(--accent); }
+    .empty { padding: 48px; text-align: center; color: var(--muted); }
+    .copy-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 13px; font-family: monospace; display: flex; justify-content: space-between; align-items: center; gap: 10px; word-break: break-all; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
+    .loader { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Aff<span>Army</span></div>
+  <nav>
+    <a href="#" class="active" data-page="overview">📊 Overview</a>
+    <a href="#" data-page="affiliates">👥 Affiliates</a>
+    <a href="#" data-page="prospects">🎯 Prospects</a>
+    <a href="#" data-page="payouts">💰 Payouts</a>
+    <a href="#" data-page="tools">⚙️ Tools</a>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- Overview Page -->
+  <div class="page active" id="page-overview">
+    <h2>Overview</h2>
+    <div class="grid" id="kpi-grid">
+      <div class="card"><div class="label">Total Affiliates</div><div class="value accent" id="kpi-affiliates">—</div></div>
+      <div class="card"><div class="label">Total Clicks</div><div class="value" id="kpi-clicks">—</div></div>
+      <div class="card"><div class="label">Conversions</div><div class="value" id="kpi-conversions">—</div></div>
+      <div class="card"><div class="label">Conversion Rate</div><div class="value" id="kpi-cvr">—</div></div>
+      <div class="card"><div class="label">Total Revenue</div><div class="value green" id="kpi-revenue">—</div></div>
+      <div class="card"><div class="label">Pending Payouts</div><div class="value" id="kpi-payouts">—</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><h3>Last 30 Days — Revenue</h3></div>
+      <div class="chart-wrap"><canvas id="revenue-chart"></canvas></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><h3>Top Affiliates</h3></div>
+      <div class="section-body"><table><thead><tr><th>Name</th><th>Code</th><th>Clicks</th><th>Conv.</th><th>Earned</th><th>Status</th></tr></thead><tbody id="top-affiliates"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Affiliates Page -->
+  <div class="page" id="page-affiliates">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h2 style="margin:0">Affiliates</h2>
+      <button class="btn btn-primary" onclick="openModal('add-affiliate')">+ Add Affiliate</button>
+    </div>
+    <div class="section">
+      <div class="section-body">
+        <table>
+          <thead><tr><th>Name</th><th>Code</th><th>Clicks</th><th>Conv.</th><th>Earned</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="affiliates-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prospects Page -->
+  <div class="page" id="page-prospects">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="margin:0">Prospects</h2>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="openModal('import-csv')">Import CSV</button>
+        <button class="btn btn-primary" onclick="triggerScout()">🔍 Run Scout</button>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab active" data-filter="">All</div>
+      <div class="tab" data-filter="FOUND">Found</div>
+      <div class="tab" data-filter="CONTACTED">Contacted</div>
+      <div class="tab" data-filter="RESPONDED">Responded</div>
+      <div class="tab" data-filter="APPROVED">Approved</div>
+    </div>
+    <div class="section">
+      <div class="section-body">
+        <table>
+          <thead><tr><th>Name/Email</th><th>Platform</th><th>Niche</th><th>Score</th><th>Emails Sent</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="prospects-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payouts Page -->
+  <div class="page" id="page-payouts">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h2 style="margin:0">Payouts</h2>
+      <button class="btn btn-primary" onclick="processPayouts()">Process Payouts</button>
+    </div>
+    <div class="section" id="payout-section">
+      <div class="section-body">
+        <table>
+          <thead><tr><th>Affiliate</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="payouts-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools Page -->
+  <div class="page" id="page-tools">
+    <h2>Tools</h2>
+
+    <div class="section" style="margin-bottom:24px">
+      <div class="section-header"><h3>Affiliate Link Generator</h3></div>
+      <div style="padding:20px">
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <input id="link-code" placeholder="Affiliate code (e.g. ABC123)" style="flex:1">
+          <input id="link-dest" placeholder="Destination URL (optional)" style="flex:2">
+          <button class="btn btn-primary" onclick="generateLink()">Generate</button>
+        </div>
+        <div class="copy-box" id="generated-link" style="display:none">
+          <span id="link-output"></span>
+          <button class="btn btn-ghost btn-sm" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-bottom:24px">
+      <div class="section-header"><h3>SDK Embed Code</h3></div>
+      <div style="padding:20px">
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Add this to your store's &lt;head&gt; to track affiliate conversions automatically:</p>
+        <div class="copy-box">
+          <code id="sdk-snippet" style="font-size:12px"></code>
+          <button class="btn btn-ghost btn-sm" onclick="copySdk()">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><h3>Run Jobs Manually</h3></div>
+      <div style="padding:20px;display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="runJob('scout')">🔍 Run Scout</button>
+        <button class="btn btn-ghost" onclick="runJob('outreach')">📧 Process Outreach</button>
+        <button class="btn btn-ghost" onclick="runJob('clear')">✅ Clear Conversions</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-add-affiliate">
+  <div class="modal">
+    <h3>Add Affiliate</h3>
+    <div class="form-group"><label>Name</label><input id="aff-name" placeholder="John Smith"></div>
+    <div class="form-group"><label>Email</label><input id="aff-email" type="email" placeholder="john@example.com"></div>
+    <div class="form-group"><label>Commission Rate (%)</label><input id="aff-rate" type="number" value="30" min="1" max="80"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-affiliate')">Cancel</button>
+      <button class="btn btn-primary" onclick="addAffiliate()">Add Affiliate</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-import-csv">
+  <div class="modal">
+    <h3>Import Prospects from CSV</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Format: name,email,handle,platform,followerCount,website</p>
+    <div class="form-group"><label>Niche</label><input id="csv-niche" placeholder="make-money-online"></div>
+    <div class="form-group"><label>CSV Data</label><textarea id="csv-data" placeholder="name,email,handle,platform,followers,website&#10;Jane Doe,jane@blog.com,@jane,blog,12000,https://jane.blog"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('import-csv')">Cancel</button>
+      <button class="btn btn-primary" onclick="importCsv()">Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SECRET = prompt('Admin secret:') || '';
+const API = '';
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', 'x-admin-secret': SECRET },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, type = 'success') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.style.background = type === 'error' ? '#ef4444' : '#10b981';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// Navigation
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const page = a.dataset.page;
+    document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    $('page-' + page).classList.add('active');
+    loadPage(page);
+  });
+});
+
+// Modal helpers
+function openModal(id) { $('modal-' + id).classList.add('open'); }
+function closeModal(id) { $('modal-' + id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function money(cents) { return '$' + (cents / 100).toFixed(2); }
+function badge(status) { return `<span class="badge ${status.toLowerCase()}">${status}</span>`; }
+
+// ── Overview ──────────────────────────────────────────────────
+async function loadOverview() {
+  const s = await api('/analytics/summary');
+  $('kpi-affiliates').textContent = s.totalAffiliates;
+  $('kpi-clicks').textContent = s.totalClicks.toLocaleString();
+  $('kpi-conversions').textContent = s.totalConversions.toLocaleString();
+  $('kpi-cvr').textContent = s.conversionRate;
+  $('kpi-revenue').textContent = money(s.totalRevenue);
+  $('kpi-payouts').textContent = money(s.pendingPayouts);
+
+  const affiliates = await api('/analytics/affiliates');
+  const top = affiliates.slice(0, 10);
+  $('top-affiliates').innerHTML = top.map(a => `
+    <tr>
+      <td>${a.name}</td>
+      <td><code>${a.code}</code></td>
+      <td>${a.totalClicks}</td>
+      <td>${a.totalConversions}</td>
+      <td>${money(a.totalEarnings)}</td>
+      <td>${badge(a.status)}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">No affiliates yet</td></tr>';
+
+  // Chart
+  const daily = await api('/analytics/daily?days=30');
+  drawChart(daily);
+}
+
+function drawChart(data) {
+  const canvas = $('revenue-chart');
+  if (!canvas || !data.length) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  canvas.width = W; canvas.height = H;
+
+  const revenues = data.map(d => d.revenue / 100);
+  const max = Math.max(...revenues, 1);
+  const pad = { top: 10, right: 10, bottom: 24, left: 48 };
+  const gW = W - pad.left - pad.right;
+  const gH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#2a2d3e'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (gH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText('$' + ((max - (max / 4) * i)).toFixed(0), pad.left - 4, y + 4);
+  }
+
+  // Bars
+  const bW = gW / data.length * 0.7;
+  data.forEach((d, i) => {
+    const x = pad.left + (gW / data.length) * i + (gW / data.length * 0.15);
+    const h = (revenues[i] / max) * gH;
+    const y = pad.top + gH - h;
+    ctx.fillStyle = '#6366f1';
+    ctx.beginPath();
+    ctx.roundRect(x, y, bW, h, [3, 3, 0, 0]);
+    ctx.fill();
+  });
+
+  // X labels (every 5 days)
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+  data.forEach((d, i) => {
+    if (i % 5 === 0) {
+      const x = pad.left + (gW / data.length) * i + (gW / data.length * 0.5);
+      ctx.fillText(d.date.slice(5), x, H - 4);
+    }
+  });
+}
+
+// ── Affiliates ────────────────────────────────────────────────
+async function loadAffiliates() {
+  const data = await api('/analytics/affiliates');
+  $('affiliates-table').innerHTML = data.map(a => `
+    <tr>
+      <td>${a.name}<br><small style="color:var(--muted)">${a.email}</small></td>
+      <td><code>${a.code}</code></td>
+      <td>${a.totalClicks}</td>
+      <td>${a.totalConversions}</td>
+      <td>${money(a.totalEarnings)}</td>
+      <td>${Math.round(a.commissionRate * 100)}%</td>
+      <td>${badge(a.status)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="copyAffLink('${a.code}')">Link</button>
+        <button class="btn btn-danger btn-sm" onclick="banAffiliate('${a.id}')">Ban</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">No affiliates yet</td></tr>';
+}
+
+async function addAffiliate() {
+  const name = $('aff-name').value.trim();
+  const email = $('aff-email').value.trim();
+  const commissionRate = parseFloat($('aff-rate').value) / 100;
+  if (!name || !email) return toast('Name and email required', 'error');
+  try {
+    await api('/admin/affiliates', { method: 'POST', body: { name, email, commissionRate } });
+    closeModal('add-affiliate');
+    toast('Affiliate added!');
+    loadAffiliates();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function banAffiliate(id) {
+  if (!confirm('Ban this affiliate?')) return;
+  await api('/admin/affiliates/' + id, { method: 'DELETE' });
+  toast('Affiliate banned');
+  loadAffiliates();
+}
+
+function copyAffLink(code) {
+  const link = window.location.origin + '/track/click/' + code;
+  navigator.clipboard.writeText(link);
+  toast('Link copied!');
+}
+
+// ── Prospects ─────────────────────────────────────────────────
+let currentFilter = '';
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    loadProspects(currentFilter);
+  });
+});
+
+async function loadProspects(filter = '') {
+  const url = '/analytics/prospects' + (filter ? '?status=' + filter : '');
+  const data = await api(url);
+  $('prospects-table').innerHTML = data.map(p => `
+    <tr>
+      <td>${p.name || '—'}<br><small style="color:var(--muted)">${p.email}</small></td>
+      <td>${p.platform}</td>
+      <td>${p.niche || '—'}</td>
+      <td>${Math.round(p.score)}</td>
+      <td>${p._count?.outreach ?? 0}</td>
+      <td>${badge(p.status)}</td>
+      <td>
+        ${p.status !== 'APPROVED' && p.status !== 'REJECTED' ? `
+          <button class="btn btn-primary btn-sm" onclick="approveProspect('${p.id}')">Approve</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectProspect('${p.id}')">Reject</button>
+        ` : '—'}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" class="empty">No prospects found</td></tr>';
+}
+
+async function approveProspect(id) {
+  try {
+    const r = await api('/admin/prospects/' + id + '/approve', { method: 'POST' });
+    toast('Approved! Code: ' + r.code);
+    loadProspects(currentFilter);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function rejectProspect(id) {
+  await api('/admin/prospects/' + id + '/reject', { method: 'POST' });
+  toast('Prospect rejected');
+  loadProspects(currentFilter);
+}
+
+async function triggerScout() {
+  await api('/admin/prospects/scout', { method: 'POST', body: {} });
+  toast('Scout started in background!');
+}
+
+async function importCsv() {
+  const csv = $('csv-data').value.trim();
+  const niche = $('csv-niche').value.trim() || 'general';
+  if (!csv) return toast('Paste CSV data', 'error');
+  try {
+    const r = await api('/admin/prospects/import', { method: 'POST', body: { csv, niche } });
+    closeModal('import-csv');
+    toast(`Imported ${r.imported} prospects`);
+    loadProspects();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Payouts ───────────────────────────────────────────────────
+async function loadPayouts() {
+  // Fetch affiliates with pending payouts
+  const affiliates = await api('/analytics/affiliates');
+  const pending = affiliates.filter(a => a.pendingPayout > 0);
+  $('payouts-table').innerHTML = pending.map(a => `
+    <tr>
+      <td>${a.name}<br><small style="color:var(--muted)">${a.email}</small></td>
+      <td>${money(a.pendingPayout)}</td>
+      <td>${a.paypalEmail ? 'PayPal' : 'Manual'}</td>
+      <td>${badge('PENDING')}</td>
+      <td>—</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">No pending payouts</td></tr>';
+}
+
+async function processPayouts() {
+  if (!confirm('Process all eligible payouts?')) return;
+  try {
+    const r = await api('/admin/payouts/process', { method: 'POST', body: {} });
+    toast(`Processed ${r.processed} payouts`);
+    loadPayouts();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Tools ─────────────────────────────────────────────────────
+function generateLink() {
+  const code = $('link-code').value.trim().toUpperCase();
+  const dest = $('link-dest').value.trim();
+  if (!code) return toast('Enter an affiliate code', 'error');
+  const link = window.location.origin + '/track/click/' + code + (dest ? '?to=' + encodeURIComponent(dest) : '');
+  $('link-output').textContent = link;
+  $('generated-link').style.display = 'flex';
+}
+
+function copyLink() {
+  navigator.clipboard.writeText($('link-output').textContent);
+  toast('Copied!');
+}
+
+function copySdk() {
+  navigator.clipboard.writeText($('sdk-snippet').textContent);
+  toast('SDK snippet copied!');
+}
+
+async function runJob(type) {
+  const map = {
+    scout: ['/admin/prospects/scout', {}],
+    outreach: ['/admin/outreach/run', {}],
+    clear: ['/admin/conversions/clear', { days: 14 }],
+  };
+  const [path, body] = map[type];
+  await api(path, { method: 'POST', body });
+  toast('Job started');
+}
+
+function loadTools() {
+  const base = window.location.origin;
+  $('sdk-snippet').textContent = `<script src="${base}/sdk/aff-army.js" data-base="${base}"><\/script>`;
+}
+
+// ── Router ────────────────────────────────────────────────────
+function loadPage(page) {
+  switch (page) {
+    case 'overview': loadOverview(); break;
+    case 'affiliates': loadAffiliates(); break;
+    case 'prospects': loadProspects(); break;
+    case 'payouts': loadPayouts(); break;
+    case 'tools': loadTools(); break;
+  }
+}
+
+// Boot
+loadOverview();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+2026-04-28 02:00:24 [INFO] [boot] database connected
+2026-04-28 02:00:24 [INFO] [job/scout] scheduled: 0 9 * * *
+2026-04-28 02:00:24 [INFO] [job/outreach] scheduled: 0 10 * * *
+2026-04-28 02:00:24 [INFO] [job/payout] scheduled: 0 0 * * 1
+2026-04-28 02:00:24 [INFO] [boot] AffArmy running on :3500
+2026-04-28 02:00:24 [INFO] [boot] Dashboard: http://localhost:3500/dashboard
+2026-04-28 02:00:24 [INFO] [boot] Tracking:  http://localhost:3500/track/click/:code
+2026-04-28 02:01:28 [INFO] [boot] database connected

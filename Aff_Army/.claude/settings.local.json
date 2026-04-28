@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/users/goods/Skill3rXXX/backend/src/modules/affiliates//**)",
+      "Read(//c/users/goods/Skill3rXXX/backend/src/modules/affiliates/**)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(npx ts-node *)",
+      "Bash(curl -s http://localhost:3500/health)",
+      "Bash(curl -s http://localhost:3500/analytics/summary -H \"x-admin-secret: dev-secret\")",
+      "Bash(kill %1)",
+      "Bash(curl -s http://localhost:3500/analytics/summary -H \"x-admin-secret: change-me-in-production\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s \"http://localhost:3500/analytics/affiliates\" -H \"x-admin-secret: change-me-in-production\")",
+      "Bash(git add *)"
+    ]
+  }
+}

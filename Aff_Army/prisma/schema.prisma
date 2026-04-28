@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Potential affiliate found by the scout engine
+// status: FOUND | CONTACTED | RESPONDED | APPROVED | REJECTED | UNSUBSCRIBED
+model Prospect {
+  id            String   @id @default(uuid())
+  name          String?
+  email         String   @unique
+  handle        String?
+  platform      String   // twitter | instagram | youtube | reddit | blog | manual
+  niche         String?
+  followerCount Int?
+  website       String?
+  status        String   @default("FOUND")
+  notes         String?
+  score         Float    @default(0)
+  foundAt       DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  outreach  OutreachMessage[]
+  affiliate Affiliate?
+
+  @@index([status])
+  @@index([email])
+  @@index([platform])
+  @@index([score])
+}
+
+// Approved affiliate with a unique tracking code
+// status: ACTIVE | PAUSED | BANNED
+model Affiliate {
+  id               String    @id @default(uuid())
+  prospectId       String?   @unique
+  prospect         Prospect? @relation(fields: [prospectId], references: [id])
+  name             String
+  email            String    @unique
+  code             String    @unique
+  commissionRate   Float     @default(0.30)
+  status           String    @default("ACTIVE")
+  totalClicks      Int       @default(0)
+  totalConversions Int       @default(0)
+  totalEarnings    Int       @default(0)
+  pendingPayout    Int       @default(0)
+  totalPaid        Int       @default(0)
+  paypalEmail      String?
+  stripeAccountId  String?
+  notes            String?
+  joinedAt         DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  clicks      Click[]
+  conversions Conversion[]
+  payouts     Payout[]
+
+  @@index([code])
+  @@index([status])
+}
+
+// Individual click on an affiliate link
+model Click {
+  id          String    @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  ip          String?
+  userAgent   String?
+  referrer    String?
+  landing     String?
+  sessionId   String?
+  converted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// Sale attributed to an affiliate
+// status: PENDING | CLEARED | PAID | CANCELLED
+model Conversion {
+  id          String    @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  clickId     String?
+  orderId     String    @unique
+  amount      Int
+  commission  Int
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([orderId])
+  @@index([status])
+}
+
+// Outreach emails sent to prospects
+model OutreachMessage {
+  id         String   @id @default(uuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+  sequence   Int
+  subject    String
+  body       String
+  sentAt     DateTime @default(now())
+  opened     Boolean  @default(false)
+  openedAt   DateTime?
+  replied    Boolean  @default(false)
+  repliedAt  DateTime?
+
+  @@index([prospectId])
+  @@index([sequence])
+}
+
+// Commission payout records
+// status: PENDING | PROCESSING | PAID | FAILED
+model Payout {
+  id          String    @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  amount      Int
+  method      String
+  status      String    @default("PENDING")
+  reference   String?
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([status])
+}
+
+// Daily performance snapshots for charting
+model DailySnapshot {
+  id            String   @id @default(uuid())
+  date          String   @unique
+  clicks        Int      @default(0)
+  conversions   Int      @default(0)
+  revenue       Int      @default(0)
+  commission    Int      @default(0)
+  newAffiliates Int      @default(0)
+  newProspects  Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([date])
+}
