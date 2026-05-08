@@ -185,12 +185,13 @@ class AccountInfo:
 
 
 class AlpacaExecutor:
-    def __init__(self, paper: bool = True, notifier=None):
+    def __init__(self, paper: bool = True, notifier=None, validator=None):
         self.paper = paper
         self.base_url = ALPACA_PAPER_BASE if paper else ALPACA_LIVE_BASE
         self.api_key = os.getenv("ALPACA_API_KEY", "")
         self.secret_key = os.getenv("ALPACA_SECRET_KEY", "")
         self._breaker = CircuitBreaker(self, notifier=notifier)
+        self._validator = validator
 
     @property
     def is_configured(self) -> bool:
@@ -352,7 +353,7 @@ class AlpacaExecutor:
             data = resp.json()
 
             if resp.status_code in (200, 201):
-                return OrderResult(
+                result = OrderResult(
                     success=True,
                     order_id=data.get("id"),
                     symbol=symbol,
@@ -363,6 +364,12 @@ class AlpacaExecutor:
                     filled_price=float(data["filled_avg_price"]) if data.get("filled_avg_price") else None,
                     filled_qty=float(data["filled_qty"]) if data.get("filled_qty") else None
                 )
+                if self._validator is not None:
+                    try:
+                        self._validator.record(result, symbol)
+                    except Exception as exc:
+                        logger.warning("FillValidator.record failed: %s", exc)
+                return result
 
             return OrderResult(
                 success=False, order_id=None, symbol=symbol, side=side,
