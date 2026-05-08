@@ -31,6 +31,7 @@ from smart_money.mimic_engine import calculate_mimic, format_mimic_markdown
 from compound_engine import CompoundEngine, EXTRACTION_THRESHOLD, EXTRACTION_AMOUNT, TAKE_PROFIT_PCT, STOP_LOSS_PCT
 from signal_scorer import scan_watchlist, score_ticker
 from trade_executor import AlpacaExecutor
+from fill_validator import FillValidator
 
 # Page config
 st.set_page_config(
@@ -47,6 +48,8 @@ if "compounder" not in st.session_state:
     st.session_state.compounder = CompoundEngine()
 if "scan_results" not in st.session_state:
     st.session_state.scan_results = []
+if "fill_validator" not in st.session_state:
+    st.session_state.fill_validator = FillValidator()
 
 # --- SIDEBAR ---
 st.sidebar.title("📈 InvestorBot")
@@ -88,6 +91,7 @@ page = st.sidebar.radio(
         "🎮 Paper Trading",
         "🧠 Smart Money Intel",
         "🚀 Compounder",
+        "📊 Fill Validation",
         "📚 Education"
     ]
 )
@@ -815,7 +819,10 @@ elif page == "🚀 Compounder":
     """)
 
     engine = st.session_state.compounder
-    executor = AlpacaExecutor(paper=engine.state.is_paper)
+    executor = AlpacaExecutor(
+        paper=engine.state.is_paper,
+        validator=st.session_state.fill_validator,
+    )
 
     # --- Mode & Controls ---
     ctrl1, ctrl2, ctrl3 = st.columns(3)
@@ -1101,6 +1108,51 @@ elif page == "🚀 Compounder":
     st.markdown("---")
     st.caption("Compounder uses Alpaca paper trading by default. Switch to LIVE only after validating performance. Not financial advice.")
 
+
+# --- FILL VALIDATION PAGE ---
+elif page == "📊 Fill Validation":
+    st.title("📊 Fill Validation — Backtest vs. Actual")
+    st.info(
+        "Every Alpaca paper trade records the actual fill price vs the expected price "
+        "(last daily bar close). Slippage shows how realistic your backtests are. "
+        "Positive slippage = you paid more than the backtest assumed (bad for buys)."
+    )
+
+    validator = st.session_state.fill_validator
+    summary = validator.summary()
+    records = validator.load_records()
+
+    # Summary metrics
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Fills", summary["total_fills"])
+    m2.metric("Avg Slippage", f"{summary['avg_slippage_pct']:+.2f}%")
+    m3.metric("Overpaid Fills", summary["positive_slippage"])
+    m4.metric("At/Under Expected", summary["negative_slippage"])
+
+    st.markdown("---")
+
+    if not records:
+        st.info("No fill records yet. Place a paper trade via the Compounder page to start tracking.")
+    else:
+        df = pd.DataFrame(records)
+        df["slippage_pct"] = df["slippage_pct"].map(lambda x: f"{x:+.3f}%")
+        df["fill_price"] = df["fill_price"].map(lambda x: f"${x:.4f}")
+        df["expected_price"] = df["expected_price"].map(lambda x: f"${x:.4f}")
+        df["notional"] = df["notional"].map(lambda x: f"${x:.2f}")
+        df = df.rename(columns={
+            "timestamp": "Time",
+            "symbol": "Ticker",
+            "side": "Side",
+            "notional": "$ Amount",
+            "fill_price": "Fill Price",
+            "expected_price": "Expected",
+            "slippage_pct": "Slippage",
+            "order_id": "Order ID",
+        })
+        st.dataframe(df, use_container_width=True)
+
+    st.markdown("---")
+    st.caption("Expected price = last daily bar close from Yahoo Finance at time of trade.")
 
 # --- EDUCATION PAGE ---
 elif page == "📚 Education":
