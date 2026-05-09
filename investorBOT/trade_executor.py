@@ -31,6 +31,11 @@ class CircuitBreaker:
     Tracks daily portfolio drawdown and blocks orders when the 5% loss limit
     is reached. State persists to data/circuit_breaker_state.json so it
     survives app restarts within the same trading day.
+
+    Known limitation: if the app restarts mid-day after a loss has already
+    occurred, start_value is anchored to the current (already-depressed) value,
+    not the true session open. The breaker will not trigger for further losses
+    that day. Manually delete data/circuit_breaker_state.json to force a reset.
     """
 
     def __init__(self, executor: "AlpacaExecutor", notifier=None):
@@ -280,7 +285,11 @@ class AlpacaExecutor:
         return self._place_order(symbol, notional, "sell")
 
     def close_position(self, symbol: str) -> OrderResult:
-        """Close an entire open position by symbol."""
+        """Close an entire open position by symbol.
+
+        Intentionally bypasses the circuit breaker and fill validator —
+        defensive exits should always be allowed regardless of halt state.
+        """
         if not self.is_configured:
             return self._unconfigured(symbol, "sell", 0)
         try:
