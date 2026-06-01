@@ -38,7 +38,7 @@ def lookup_vendor(mac: str) -> str:
     return _oui_cache.get(prefix, "Unknown Vendor")
 
 
-NMAP_PATH = "nmap"  # assumes nmap is on PATH after Windows install
+NMAP_PATH = r"C:\Program Files (x86)\Nmap\nmap.exe"
 
 
 def _nmap_scan(ip: str) -> dict:
