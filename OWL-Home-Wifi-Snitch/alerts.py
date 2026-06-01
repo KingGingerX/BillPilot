@@ -45,6 +45,42 @@ def send_new_device_alert(device: dict):
         print(f"[OWL] Telegram alert failed: {e}")
 
 
+def send_daily_report(all_devices: list):
+    """Send 6am daily summary to Telegram."""
+    if not BOT_TOKEN or not CHAT_ID:
+        return
+
+    named    = [d for d in all_devices if d.get("label")]
+    unnamed  = [d for d in all_devices if d.get("acknowledged") == 1 and not d.get("label")]
+    new      = [d for d in all_devices if d.get("acknowledged") == 0]
+
+    lines = ["🦉 OWL Daily Report\n"]
+    lines.append(f"✅ Named devices: {len(named)}")
+    for d in named:
+        lines.append(f"  • {d['label']} — {d['ip']}")
+
+    lines.append(f"\n🔍 Scanned, not named: {len(unnamed)}")
+    for d in unnamed:
+        name = d.get("hostname") or d["mac"]
+        lines.append(f"  • {name} ({d['vendor']}) — {d['ip']}")
+
+    lines.append(f"\n🚨 New / unseen: {len(new)}")
+    for d in new:
+        name = d.get("hostname") or d["mac"]
+        lines.append(f"  • {name} ({d['vendor']}) — first seen {d['first_seen']}")
+
+    lines.append(f"\nTotal on network: {len(all_devices)}")
+
+    try:
+        requests.post(TELEGRAM_URL, json={
+            "chat_id": CHAT_ID,
+            "text": "\n".join(lines),
+            "parse_mode": "HTML"
+        }, timeout=10)
+    except Exception as e:
+        print(f"[OWL] Daily report failed: {e}")
+
+
 def validate_telegram() -> bool:
     """Check that bot token + chat ID work. Used by setup.py."""
     if not BOT_TOKEN or not CHAT_ID:

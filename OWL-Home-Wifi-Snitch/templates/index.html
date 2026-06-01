@@ -14,22 +14,20 @@
         <h1>OWL — WiFi Snitch</h1>
         <div class="subtitle">{{ devices|length }} device(s) on network</div>
     </div>
-    {% if unack_count > 0 %}
-    <span class="badge" style="margin-left:auto">{{ unack_count }} new</span>
+    {% if new_devices %}
+    <span class="badge" style="margin-left:auto">{{ new_devices|length }} new</span>
     {% endif %}
 </header>
 <main>
-    {% set new_devices = devices | selectattr("acknowledged", "equalto", 0) | list %}
-    {% set known_devices = devices | selectattr("acknowledged", "ne", 0) | list %}
 
     {% if new_devices %}
-    <div class="section-title">🚨 New / Unacknowledged Devices</div>
+    <div class="section-title">🚨 New Devices — Not Yet Seen</div>
     <div class="device-grid">
         {% for d in new_devices %}
         <div class="card new-device">
             <div class="device-name">
                 <span class="pulse"></span>
-                {{ d.label if d.label else (d.hostname if d.hostname else d.mac) }}
+                {{ d.hostname if d.hostname else d.mac }}
             </div>
             <div class="device-ip">{{ d.ip }}</div>
             <div class="meta">
@@ -48,13 +46,37 @@
     </div>
     {% endif %}
 
-    <div class="section-title">✅ Known Devices</div>
+    {% if unnamed_devices %}
+    <div class="section-title">🔍 Scanned — Not Yet Named ({{ unnamed_devices|length }})</div>
     <div class="device-grid">
-        {% for d in known_devices %}
+        {% for d in unnamed_devices %}
+        <div class="card unnamed-device">
+            <div class="device-name">
+                <span class="unseen-dot"></span>
+                {{ d.hostname if d.hostname else d.mac }}
+            </div>
+            <div class="device-ip">{{ d.ip }}</div>
+            <div class="meta">
+                Vendor: <span>{{ d.vendor }}</span><br>
+                {{ d.description }}<br>
+                MAC: <span>{{ d.mac }}</span><br>
+                Ports: <span>{{ d.open_ports | join(', ') if d.open_ports else 'none' }}</span><br>
+                Last seen: <span>{{ d.last_seen }}</span>
+            </div>
+            <a class="btn" href="{{ url_for('device_detail', mac=d.mac) }}">Name / Details</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if named_devices %}
+    <div class="section-title">✅ Named Devices ({{ named_devices|length }})</div>
+    <div class="device-grid">
+        {% for d in named_devices %}
         <div class="card">
             <div class="device-name">
                 <span class="online-dot"></span>
-                {{ d.label if d.label else (d.hostname if d.hostname else d.mac) }}
+                {{ d.label }}
             </div>
             <div class="device-ip">{{ d.ip }}</div>
             <div class="meta">
@@ -67,6 +89,8 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
+
 </main>
 </body>
 </html>

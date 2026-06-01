@@ -7,17 +7,30 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from store import init_db
+from datetime import datetime
+from store import init_db, get_all_devices
 from scanner import scan
 from identifier import identify
 from store import upsert_device, get_device
-from alerts import send_new_device_alert
+from alerts import send_new_device_alert, send_daily_report
 from dashboard import app
 
 SCAN_INTERVAL = int(os.getenv("SCAN_INTERVAL", "60"))
 DASHBOARD_PORT = int(os.getenv("DASHBOARD_PORT", "5000"))
 
 _running = True
+_last_report_date = None
+
+
+def _check_daily_report():
+    global _last_report_date
+    now = datetime.now()
+    today = now.date()
+    if now.hour == 6 and _last_report_date != today:
+        _last_report_date = today
+        devices = get_all_devices()
+        send_daily_report(devices)
+        print("[OWL] Daily report sent.")
 
 
 def scanner_loop():
@@ -46,6 +59,7 @@ def scanner_loop():
         except Exception as e:
             print(f"[OWL] Scanner error: {e}")
 
+        _check_daily_report()
         time.sleep(SCAN_INTERVAL)
 
 

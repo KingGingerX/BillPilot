@@ -10,8 +10,17 @@ def index():
     devices = get_all_devices()
     for d in devices:
         d["open_ports"] = json.loads(d["open_ports"]) if d["open_ports"] else []
-    unack_count = get_unacknowledged_count()
-    return render_template("index.html", devices=devices, unack_count=unack_count)
+
+    new_devices     = [d for d in devices if d["acknowledged"] == 0]
+    unnamed_devices = [d for d in devices if d["acknowledged"] == 1 and not d["label"]]
+    named_devices   = [d for d in devices if d["label"]]
+
+    return render_template("index.html",
+        devices=devices,
+        new_devices=new_devices,
+        unnamed_devices=unnamed_devices,
+        named_devices=named_devices,
+    )
 
 
 @app.route("/device/<mac>")

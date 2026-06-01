@@ -110,6 +110,18 @@ main { padding: 24px 32px; max-width: 1100px; margin: 0 auto; }
     margin-right: 5px;
 }
 
+.unseen-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #f0c674;
+    margin-right: 5px;
+}
+
+.card.unnamed-device {
+    border-color: #f0c674;
+}
+
 form { display: inline; }
 
 /* Detail page */
