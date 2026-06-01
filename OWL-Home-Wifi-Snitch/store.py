@@ -22,17 +22,26 @@ def init_db():
                 vendor       TEXT,
                 description  TEXT,
                 open_ports   TEXT DEFAULT '[]',
+                services     TEXT DEFAULT '[]',
+                os_guess     TEXT DEFAULT '',
                 first_seen   TEXT,
                 last_seen    TEXT,
                 label        TEXT DEFAULT '',
                 acknowledged INTEGER DEFAULT 0
             )
         """)
+        # Migrate existing DB — add columns if missing
+        for col, default in [("services", "''"), ("os_guess", "''")]:
+            try:
+                conn.execute(f"ALTER TABLE devices ADD COLUMN {col} TEXT DEFAULT {default}")
+            except Exception:
+                pass
         conn.commit()
 
 
-def upsert_device(mac, ip, hostname, vendor, description, open_ports):
+def upsert_device(mac, ip, hostname, vendor, description, open_ports, services=None, os_guess=""):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    services = services or []
     with get_conn() as conn:
         existing = conn.execute(
             "SELECT mac FROM devices WHERE mac = ?", (mac,)
@@ -41,16 +50,16 @@ def upsert_device(mac, ip, hostname, vendor, description, open_ports):
         if existing:
             conn.execute("""
                 UPDATE devices
-                SET ip=?, hostname=?, vendor=?, description=?, open_ports=?, last_seen=?
+                SET ip=?, hostname=?, vendor=?, description=?, open_ports=?, services=?, os_guess=?, last_seen=?
                 WHERE mac=?
-            """, (ip, hostname, vendor, description, json.dumps(open_ports), now, mac))
+            """, (ip, hostname, vendor, description, json.dumps(open_ports), json.dumps(services), os_guess, now, mac))
             is_new = False
         else:
             conn.execute("""
                 INSERT INTO devices
-                    (mac, ip, hostname, vendor, description, open_ports, first_seen, last_seen, acknowledged)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-            """, (mac, ip, hostname, vendor, description, json.dumps(open_ports), now, now))
+                    (mac, ip, hostname, vendor, description, open_ports, services, os_guess, first_seen, last_seen, acknowledged)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            """, (mac, ip, hostname, vendor, description, json.dumps(open_ports), json.dumps(services), os_guess, now, now))
             is_new = True
 
         conn.commit()

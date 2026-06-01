@@ -22,7 +22,13 @@
             <tr><td>Hostname</td><td>{{ device.hostname or '—' }}</td></tr>
             <tr><td>Vendor</td><td>{{ device.vendor }}</td></tr>
             <tr><td>Description</td><td>{{ device.description }}</td></tr>
+            {% if device.os_guess %}
+            <tr><td>OS (nmap)</td><td>{{ device.os_guess }}</td></tr>
+            {% endif %}
             <tr><td>Open Ports</td><td>{{ device.open_ports | join(', ') if device.open_ports else 'none detected' }}</td></tr>
+            {% if device.services %}
+            <tr><td>Services</td><td>{{ device.services | join('<br>') }}</td></tr>
+            {% endif %}
             <tr><td>First Seen</td><td>{{ device.first_seen }}</td></tr>
             <tr><td>Last Seen</td><td>{{ device.last_seen }}</td></tr>
             <tr><td>Your Label</td><td>{{ device.label or '(not set)' }}</td></tr>

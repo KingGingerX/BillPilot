@@ -34,6 +34,8 @@ def scanner_loop():
                     vendor=info["vendor"],
                     description=info["description"],
                     open_ports=info["open_ports"],
+                    services=info.get("services", []),
+                    os_guess=info.get("os_guess", ""),
                 )
                 if is_new:
                     device_record = get_device(d["mac"])

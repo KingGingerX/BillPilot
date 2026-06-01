@@ -20,6 +20,7 @@ def device_detail(mac):
     if not device:
         return "Device not found", 404
     device["open_ports"] = json.loads(device["open_ports"]) if device["open_ports"] else []
+    device["services"] = json.loads(device["services"]) if device.get("services") else []
     return render_template("device.html", device=device)
 
 
