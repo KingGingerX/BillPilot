@@ -13,6 +13,7 @@ except ImportError:
     pass
 
 from .credit_repair import dispute_letter, escalation_letter, remediation_steps
+from .investor_research import InvestorQuery, format_investor_report, research_investor
 from .models import CreditReportItem, DebtAccount
 from .negotiation import (
     build_closing_script,
@@ -498,6 +499,286 @@ def _render_payoff_calculator_tab() -> None:
         )
 
 
+def _render_investor_research_tab() -> None:
+    st.subheader("Angel Investor Research Tool")
+    st.caption(
+        "Research any angel investor and generate a tailored pitch strategy powered by AI. "
+        "Requires ANTHROPIC_API_KEY."
+    )
+
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        st.warning(
+            "ANTHROPIC_API_KEY is not set. Add it to your `.env` file to use this tool.\n\n"
+            "```\nANTHROPIC_API_KEY=sk-ant-...\n```"
+        )
+
+    st.markdown("### Step 1 — Who are you researching?")
+    col_l, col_r = st.columns(2)
+    with col_l:
+        investor_name = st.text_input(
+            "Investor name *",
+            placeholder="e.g. Naval Ravikant",
+        )
+        firm = st.text_input(
+            "Firm / affiliation (optional)",
+            placeholder="e.g. AngelList, a16z",
+        )
+        investor_notes = st.text_area(
+            "Notes you've already gathered (optional)",
+            placeholder=(
+                "Paste anything you know: LinkedIn bio, blog posts, tweets, "
+                "portfolio list, interviews…"
+            ),
+            height=120,
+        )
+
+    with col_r:
+        venture_name = st.text_input(
+            "Your venture name *",
+            placeholder="e.g. CleanSlate Health",
+        )
+        venture_description = st.text_area(
+            "What you're building *",
+            placeholder=(
+                "2–3 sentences: what it is, who it serves, and how it works."
+            ),
+            height=90,
+        )
+        sector = st.text_input(
+            "Sector / industry *",
+            placeholder="e.g. HealthTech, CleanEnergy, EdTech",
+        )
+        stage = st.selectbox(
+            "Your current stage *",
+            ["Pre-Idea / Concept", "Pre-Seed", "Seed", "Series A", "Series B+"],
+        )
+        good_cause = st.text_area(
+            "Mission / why it matters *",
+            placeholder=(
+                "Why is this a good cause? What problem does it solve? "
+                "What impact does it create?"
+            ),
+            height=90,
+        )
+
+    st.divider()
+
+    if st.button(
+        "Research Investor & Build Pitch Strategy",
+        use_container_width=True,
+        type="primary",
+        disabled=not os.getenv("ANTHROPIC_API_KEY"),
+    ):
+        # Validate required fields
+        missing = []
+        if not investor_name.strip():
+            missing.append("Investor name")
+        if not venture_name.strip():
+            missing.append("Your venture name")
+        if not venture_description.strip():
+            missing.append("What you're building")
+        if not sector.strip():
+            missing.append("Sector")
+        if not good_cause.strip():
+            missing.append("Mission / why it matters")
+        if missing:
+            st.error(f"Please fill in: {', '.join(missing)}")
+            return
+
+        try:
+            query = InvestorQuery(
+                investor_name=investor_name,
+                firm_or_affiliation=firm,
+                your_venture_name=venture_name,
+                your_venture_description=venture_description,
+                your_sector=sector,
+                your_stage=stage,
+                why_good_cause=good_cause,
+                additional_investor_notes=investor_notes,
+            )
+        except Exception as e:
+            st.error(f"Input validation error: {e}")
+            return
+
+        store = _get_store()
+        store.log_request(
+            task_type="investor_research",
+            details={"investor_name": investor_name, "venture_name": venture_name},
+        )
+
+        with st.spinner(f"Researching {investor_name} and crafting your pitch strategy…"):
+            try:
+                data = research_investor(query)
+            except Exception as e:
+                st.error(f"Research failed: {e}")
+                return
+
+        st.markdown("---")
+
+        # ── Investor Overview ──────────────────────────────────────────────
+        conf = data.get("data_confidence", {})
+        conf_level = (conf.get("level") or "unknown").lower()
+        conf_color = {"high": "🟢", "medium": "🟡", "low": "🔴"}.get(conf_level, "⚪")
+
+        st.markdown(f"## {data.get('name', investor_name)}")
+        st.caption(
+            f"{data.get('firm_or_affiliation', '')}  ·  "
+            f"{data.get('location', '')}  ·  "
+            f"Data confidence: {conf_color} {conf_level.capitalize()}"
+        )
+        if conf.get("note"):
+            st.info(f"**Confidence note:** {conf['note']}")
+
+        # Metrics row
+        score = data.get("venture_alignment_score")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Stage Focus", data.get("investment_stage", "—"))
+        m2.metric("Typical Check", data.get("typical_check_size", "—"))
+        m3.metric("Geography", data.get("geographic_preference", "—"))
+        if score is not None:
+            bar = "█" * int(score) + "░" * (10 - int(score))
+            m4.metric("Venture Fit", f"{score}/10", help=bar)
+
+        # Investor profile expander
+        with st.expander("Investor Profile — Biography & Background", expanded=True):
+            st.markdown("**Biography**")
+            st.write(data.get("bio_summary", "Not available"))
+            st.markdown("**Professional Background**")
+            st.write(data.get("professional_background", "Not available"))
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown("**Investment Focus Areas**")
+                for item in (data.get("investment_focus") or []):
+                    st.markdown(f"- {item}")
+            with col_b:
+                st.markdown("**Notable Investments**")
+                for item in (data.get("notable_investments") or []):
+                    st.markdown(f"- {item}")
+
+            if data.get("recent_themes"):
+                st.markdown("**Recent Themes & Priorities**")
+                st.write(data["recent_themes"])
+
+            quotes = data.get("quotes") or []
+            if quotes:
+                st.markdown("**Notable Quotes**")
+                for q in quotes:
+                    st.markdown(f"> _{q}_")
+
+        # What they look for expander
+        with st.expander("What They Look For — Criteria & Red Flags"):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown("**What they look for in companies**")
+                for item in (data.get("what_they_look_for") or []):
+                    st.markdown(f"- {item}")
+                st.markdown("**Founder preferences**")
+                for item in (data.get("founder_preferences") or []):
+                    st.markdown(f"- {item}")
+            with col_b:
+                st.markdown("**Red flags (what causes them to pass)**")
+                for item in (data.get("red_flags") or []):
+                    st.markdown(f"- {item}")
+
+        # Contact expander
+        with st.expander("Contact Intelligence"):
+            cc = data.get("contact_channels") or {}
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(f"**LinkedIn:** {cc.get('linkedin', 'Not available')}")
+                st.markdown(f"**Twitter/X:** {cc.get('twitter', 'Not available')}")
+                st.markdown(f"**Website:** {cc.get('website', 'Not available')}")
+                st.markdown(f"**Email:** {cc.get('email', 'Not publicly listed')}")
+            with col_b:
+                st.markdown("**Best Approach**")
+                st.write(cc.get("best_approach", "Not available"))
+
+        # ── Venture Fit ────────────────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### Venture Fit Analysis")
+        if score is not None:
+            pct = int(score) * 10
+            st.progress(pct, text=f"Alignment score: **{score}/10**")
+        st.write(data.get("venture_alignment_rationale", "Not available"))
+
+        # ── Pitch Strategy ─────────────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### Pitch Strategy")
+
+        ps = data.get("pitch_strategy") or {}
+
+        st.markdown("#### Opening Hook")
+        st.info(ps.get("headline_hook", "Not available"))
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown("**Key Alignment Points**")
+            for item in (ps.get("key_alignment_points") or []):
+                st.markdown(f"- {item}")
+            st.markdown("**Metrics to Lead With**")
+            for item in (ps.get("metrics_to_lead_with") or []):
+                st.markdown(f"- {item}")
+        with col_b:
+            st.markdown("**Core Talking Points**")
+            for item in (ps.get("core_talking_points") or []):
+                st.markdown(f"- {item}")
+            st.markdown("**Things to Avoid**")
+            for item in (ps.get("things_to_avoid") or []):
+                st.markdown(f"- {item}")
+
+        st.markdown("**Questions to Ask Them**")
+        for item in (ps.get("questions_to_ask_them") or []):
+            st.markdown(f"- {item}")
+
+        st.markdown("**Follow-Up Strategy**")
+        st.write(ps.get("follow_up_strategy", "Not available"))
+
+        # ── Outreach Email ─────────────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### Cold Outreach Email Template")
+        em = data.get("outreach_email") or {}
+        st.markdown(f"**Subject:** `{em.get('subject_line', '')}`")
+        st.code(em.get("body", "Not available"), language=None)
+        safe_name = re.sub(r"[^a-z0-9_]", "_", investor_name.lower())
+        st.download_button(
+            "Download outreach email (.txt)",
+            data=f"Subject: {em.get('subject_line', '')}\n\n{em.get('body', '')}",
+            file_name=f"outreach_{safe_name}.txt",
+            mime="text/plain",
+        )
+
+        # ── Research Queries ───────────────────────────────────────────────
+        sq = data.get("suggested_research_queries") or []
+        if sq:
+            with st.expander("Suggested Research Queries — dig deeper"):
+                st.caption("Run these searches on Google, LinkedIn, or Crunchbase:")
+                for q in sq:
+                    st.markdown(f"- {q}")
+
+        # ── Full Report Download ───────────────────────────────────────────
+        st.markdown("---")
+        full_report = format_investor_report(data, query)
+        st.download_button(
+            "Download Full Research Brief (.txt)",
+            data=full_report,
+            file_name=f"investor_brief_{safe_name}.txt",
+            mime="text/plain",
+            type="primary",
+            use_container_width=True,
+        )
+
+        store.log_task_completed(
+            task_type="investor_research",
+            details={
+                "investor_name": investor_name,
+                "alignment_score": score,
+                "confidence": conf_level,
+            },
+        )
+        st.success("Research complete — brief saved to history.")
+
+
 def run_ui() -> None:
     st.set_page_config(page_title="BillPilot", page_icon="💳", layout="wide")
 
@@ -505,11 +786,12 @@ def run_ui() -> None:
 
     st.title("BillPilot")
     st.caption(
-        "Debt negotiation scripts and FCRA credit dispute letters — generated from your actual numbers."
+        "Debt negotiation scripts, FCRA credit dispute letters, and angel investor research — "
+        "all generated from your actual data."
     )
 
-    negotiate_tab, dispute_tab, payoff_tab, history_tab = st.tabs(
-        ["Negotiation", "Credit Dispute", "Payoff Calculator", "History"]
+    negotiate_tab, dispute_tab, payoff_tab, investor_tab, history_tab = st.tabs(
+        ["Negotiation", "Credit Dispute", "Payoff Calculator", "Investor Research", "History"]
     )
 
     with negotiate_tab:
@@ -520,6 +802,9 @@ def run_ui() -> None:
 
     with payoff_tab:
         _render_payoff_calculator_tab()
+
+    with investor_tab:
+        _render_investor_research_tab()
 
     with history_tab:
         _render_history_panel()

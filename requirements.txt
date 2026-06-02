@@ -1,5 +1,17 @@
+# Core
 cryptography>=42.0
 pydantic>=2.0
 python-dotenv>=1.1
 streamlit>=1.40
+
+# AI (investor research & letter enhancement)
+anthropic>=0.40
+
+# Automated web search
+duckduckgo-search>=6.0
+requests>=2.28
+beautifulsoup4>=4.12
+lxml>=4.9
+
+# Dev / testing
 pytest>=8.0

@@ -12,10 +12,14 @@ dependencies = [
     "pydantic>=2.0",
     "python-dotenv>=1.1",
     "streamlit>=1.40",
+    "anthropic>=0.40",
+    "duckduckgo-search>=6.0",
+    "requests>=2.28",
+    "beautifulsoup4>=4.12",
+    "lxml>=4.9",
 ]
 
 [project.optional-dependencies]
-ai  = ["anthropic>=0.40"]
 dev = ["pytest>=8.0"]
 
 [project.scripts]

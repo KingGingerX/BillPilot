@@ -13,6 +13,7 @@ except ImportError:
     pass
 
 from .credit_repair import dispute_letter, escalation_letter, remediation_steps
+from .investor_research import InvestorQuery, format_investor_report, research_investor
 from .models import CreditReportItem, DebtAccount
 from .negotiation import (
     build_closing_script,
@@ -164,6 +165,46 @@ def cmd_escalate(args: argparse.Namespace) -> None:
     _write_output(letter, getattr(args, "output", None))
 
 
+def cmd_investor_research(args: argparse.Namespace) -> None:
+    """CLI handler for the investor-research subcommand."""
+    try:
+        query = InvestorQuery(
+            investor_name=args.investor,
+            firm_or_affiliation=getattr(args, "firm", "") or "",
+            your_venture_name=args.venture_name,
+            your_venture_description=args.venture_description,
+            your_sector=args.sector,
+            your_stage=args.stage,
+            why_good_cause=args.mission,
+            additional_investor_notes=getattr(args, "notes", "") or "",
+        )
+    except Exception as e:
+        print(f"Input validation error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    store = _get_store()
+    store.log_request(
+        task_type="investor_research",
+        details={"investor_name": args.investor, "venture_name": args.venture_name},
+    )
+
+    print(f"Researching {args.investor}…", file=sys.stderr)
+    try:
+        data = research_investor(query)
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    report = format_investor_report(data, query)
+    _write_output(report, getattr(args, "output", None))
+
+    score = data.get("venture_alignment_score", "?")
+    store.log_task_completed(
+        task_type="investor_research",
+        details={"investor_name": args.investor, "alignment_score": score},
+    )
+
+
 def cmd_ui(_: argparse.Namespace) -> None:
     ui_module = str(Path(__file__).parent / "ui.py")
     try:
@@ -231,6 +272,26 @@ def build_parser() -> argparse.ArgumentParser:
                           dest="prior_dispute_date", help="Date you submitted the original bureau dispute")
     escalate.add_argument("--output", metavar="FILE", help="Save output to file instead of stdout")
     escalate.set_defaults(func=cmd_escalate)
+
+    investor = sub.add_parser("investor-research", help="Research an angel investor and build a pitch strategy")
+    investor.add_argument("--investor", required=True, metavar="NAME",
+                          help="Full name of the investor to research")
+    investor.add_argument("--firm", default="", metavar="FIRM",
+                          help="Firm or affiliation (optional)")
+    investor.add_argument("--venture-name", required=True, dest="venture_name", metavar="NAME",
+                          help="Name of your venture")
+    investor.add_argument("--venture-description", required=True, dest="venture_description",
+                          metavar="TEXT", help="2-3 sentence description of what you're building")
+    investor.add_argument("--sector", required=True, metavar="SECTOR",
+                          help="Your sector / industry (e.g. HealthTech, CleanEnergy)")
+    investor.add_argument("--stage", required=True, metavar="STAGE",
+                          help="Your current stage (e.g. Pre-Seed, Seed)")
+    investor.add_argument("--mission", required=True, metavar="TEXT",
+                          help="Why your venture matters / the good cause element")
+    investor.add_argument("--notes", default="", metavar="TEXT",
+                          help="Any additional research you have on this investor")
+    investor.add_argument("--output", metavar="FILE", help="Save report to file instead of stdout")
+    investor.set_defaults(func=cmd_investor_research)
 
     ui_cmd = sub.add_parser("ui", help="Show UI launch instructions")
     ui_cmd.set_defaults(func=cmd_ui)
