@@ -18,6 +18,10 @@ from .email_generator import generate_email
 from .email_sender import is_configured, provider_label, send_email
 from .funnel_engine import process_response, run_followup_batch, send_bulk, send_outreach
 from .models import FUNNEL_STAGES, STATUS_COLORS
+from .pitch_materials import (
+    FLYER_BODY, FLYER_HEADLINE, FOOTER_LINE, MISSION, PRO_TIPS,
+    PRIORITY_GROUPS, TERRITORY_STRATEGY,
+)
 from .ranking import find_nearby, get_priority_targets, get_ranked_restaurants, qualify_nearby_from_interested, score_color, score_label
 
 # ── Page config ────────────────────────────────────────────────────────────────
@@ -133,21 +137,48 @@ def _render_sidebar() -> Optional[int]:
     with st.sidebar:
         st.markdown("""
         <div class="sidebar-brand">
-            <h2>🍽️ Rita's Rewards</h2>
-            <p>Outreach Engine</p>
+            <h2>ritas2rewards</h2>
+            <p>DFW Restaurant Outreach Engine</p>
         </div>
         """, unsafe_allow_html=True)
 
         areas = get_areas()
-        area_options = {a["name"]: a["id"] for a in areas}
-        area_options["— All Areas —"] = None  # type: ignore[assignment]
 
-        # Put "All Areas" first
-        sorted_keys = ["— All Areas —"] + [k for k in area_options if k != "— All Areas —"]
+        # Build area options with territory color indicators
+        def _area_label(a: dict) -> str:
+            color = a.get("route_color") or "#718096"
+            day = a.get("route_day") or ""
+            day_tag = f" [{day}]" if day else ""
+            return f"{a['name']}{day_tag}"
 
-        selected_name = st.selectbox("📍 Geographic Area", sorted_keys, key="area_select")
+        area_options: dict[str, Optional[int]] = {"— All Areas —": None}
+        for a in areas:
+            area_options[_area_label(a)] = a["id"]
+
+        selected_name = st.selectbox("📍 Territory", list(area_options.keys()), key="area_select")
         area_id = area_options[selected_name]
         st.session_state.selected_area_id = area_id
+
+        # Show territory color + focus if an area is selected
+        if area_id:
+            sel_area = next((a for a in areas if a["id"] == area_id), None)
+            if sel_area:
+                color = sel_area.get("route_color") or "#718096"
+                focus = sel_area.get("focus") or ""
+                est = sel_area.get("est_stops") or ""
+                strat = TERRITORY_STRATEGY.get(sel_area.get("route_day") or "", "")
+                st.markdown(
+                    f'<div style="background:{color}18;border-left:3px solid {color};'
+                    f'padding:6px 10px;border-radius:4px;margin:4px 0;">'
+                    f'<span style="color:{color};font-weight:600">'
+                    f'{sel_area.get("route_day","") or "Area"} Focus</span><br>'
+                    f'<span style="font-size:0.78rem;color:#CBD5E0">{focus}</span>'
+                    f'{"<br><span style=\\"font-size:0.75rem;color:#718096\\">Est. stops: " + est + "</span>" if est else ""}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                if strat:
+                    st.caption(f"💡 {strat}")
 
         if st.button("➕ Add New Area", use_container_width=True):
             st.session_state.show_add_area = True
@@ -298,10 +329,14 @@ def _render_restaurants(area_id: Optional[int]) -> None:
             status_color = STATUS_COLORS.get(r.get("status", "uncontacted"), "#718096")
             stage = FUNNEL_STAGES.get(r.get("current_stage", ""), {}).get("label", "—")
             nearby_tag = " 📍" if r.get("nearby_qualified") else ""
+            priority_tag = " ⭐" if r.get("is_priority") else ""
+            group = r.get("ownership_group") or ""
+            group_tag = f" · 🏢 {group}" if group else ""
+
             clicked = st.button(
                 f"{'🔥' if score >= 80 else '⭐' if score >= 50 else '✉️' if score > 0 else '🔵'} "
-                f"**{r['name']}**{nearby_tag}  \n"
-                f"_{r.get('cuisine_type') or 'Restaurant'} · {r.get('city') or ''} · {stage}_",
+                f"**{r['name']}**{priority_tag}{nearby_tag}  \n"
+                f"_{r.get('cuisine_type') or 'Restaurant'} · {r.get('city') or ''} · {stage}{group_tag}_",
                 key=f"rest_{r['id']}",
                 use_container_width=True,
             )
@@ -323,12 +358,28 @@ def _render_restaurant_detail(rid: int) -> None:
         return
 
     score = r.get("interest_score", 0)
-    st.markdown(f"### {r['name']}")
+    group = r.get("ownership_group") or ""
+    is_priority = r.get("is_priority", 0)
+
+    priority_badge = ' <span style="background:#B7791F;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.72rem">⭐ Priority Target</span>' if is_priority else ""
+    group_badge = (
+        f' <span style="background:#2D3748;color:#F6AD55;padding:2px 8px;border-radius:10px;'
+        f'font-size:0.72rem">🏢 {group}</span>'
+        if group else ""
+    )
+    st.markdown(
+        f"### {r['name']}{priority_badge}{group_badge}",
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f'<span style="color:{score_color(score)}">{score_label(score)}</span> '
         f'· Score: **{score}**',
         unsafe_allow_html=True,
     )
+    if group and group in PRIORITY_GROUPS:
+        grp_info = PRIORITY_GROUPS[group]
+        concepts = ", ".join(grp_info.get("concepts", []))
+        st.info(f"**{group}** — Priority #{grp_info['priority']} | {grp_info['note']}  \nConcepts: {concepts}")
 
     with st.expander("📋 Info", expanded=True):
         c1, c2 = st.columns(2)
@@ -667,20 +718,45 @@ def _render_setup(area_id: Optional[int]) -> None:
         else:
             st.info("No areas yet. Add one below.")
 
+        # Dallas quick-seed
+        st.divider()
+        st.markdown("### 🌟 Dallas DFW Quick Start")
+        st.caption("Load all 6 pre-configured Dallas territories with restaurant targets from your prospecting routes.")
+        if st.button("🚀 Seed Dallas DFW Territories", type="primary", use_container_width=True):
+            from .seed_dallas import seed_all
+            with st.spinner("Loading Dallas territories and restaurants…"):
+                result = seed_all(skip_if_exists=True)
+            if result["areas"] == 0:
+                st.info("Dallas data already loaded. Delete existing areas first to re-seed.")
+            else:
+                st.success(f"✅ Created {result['areas']} territories and {result['restaurants']} restaurant targets!")
+            st.rerun()
+
         st.divider()
         st.markdown("### Add New Area")
+        _ROUTE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Bonus", ""]
+        _DAY_COLORS = {
+            "Monday": "#C53030", "Tuesday": "#6B46C1", "Wednesday": "#B83280",
+            "Thursday": "#B7791F", "Friday": "#276749", "Bonus": "#4A5568", "": "#718096",
+        }
         with st.form("add_area_form"):
             c1, c2 = st.columns(2)
-            a_name = c1.text_input("Area Name *", placeholder="Downtown Austin")
-            a_city = c2.text_input("City *", placeholder="Austin")
+            a_name = c1.text_input("Area Name *", placeholder="North Dallas")
+            a_city = c2.text_input("City *", placeholder="Dallas")
             c3, c4, c5 = st.columns(3)
             a_state = c3.text_input("State *", placeholder="TX")
-            a_lat = c4.number_input("Latitude", value=30.2672, format="%.4f")
-            a_lng = c5.number_input("Longitude", value=-97.7431, format="%.4f")
-            a_radius = st.slider("Radius (miles)", 1, 25, 5)
+            a_lat = c4.number_input("Latitude", value=32.7767, format="%.4f")
+            a_lng = c5.number_input("Longitude", value=-96.7970, format="%.4f")
+            c6, c7 = st.columns(2)
+            a_radius = c6.slider("Radius (miles)", 1, 25, 5)
+            a_day = c7.selectbox("Route Day", _ROUTE_DAYS)
+            a_focus = st.text_input("Focus", placeholder="e.g. Ownership groups + high density")
+            a_est = st.text_input("Est. Stops", placeholder="e.g. 8-10")
             if st.form_submit_button("✅ Add Area"):
                 if a_name and a_city and a_state:
-                    create_area(a_name, a_city, a_state, a_lat, a_lng, a_radius)
+                    create_area(a_name, a_city, a_state, a_lat, a_lng, a_radius,
+                                route_day=a_day, route_color=_DAY_COLORS.get(a_day, "#718096"),
+                                focus=a_focus, est_stops=a_est)
                     st.success(f"Area '{a_name}' created!")
                     st.rerun()
                 else:
@@ -832,6 +908,133 @@ def _render_setup(area_id: Optional[int]) -> None:
         st.markdown(env_ref)
 
 
+# ── Pitch & Strategy Tab ──────────────────────────────────────────────────────
+
+def _render_pitch_strategy() -> None:
+    st.subheader("📋 Pitch Materials & DFW Strategy")
+
+    tab_flyer, tab_groups, tab_routes, tab_tips = st.tabs(
+        ["📄 Pitch Flyer", "🏢 Ownership Groups", "🗺️ Route Strategy", "💡 Pro Tips"]
+    )
+
+    with tab_flyer:
+        st.markdown(f"## {FLYER_HEADLINE}")
+        st.markdown(f"*{MISSION}*")
+        st.divider()
+
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            st.markdown("### The Value Proposition")
+            st.markdown("""
+**More Diners. More Regulars. Stronger Restaurants.**
+
+ritas2rewards connects DFW restaurants with full-paying diners through travel + rewards partnerships.
+
+**What restaurants get:**
+- Visibility to diners actively choosing where to eat based on rewards
+- Push campaigns on slow nights to ritas2rewards members
+- Monthly repeat-visit analytics dashboard
+- **Zero upfront cost** — we grow together
+
+**What it takes:**
+- 15-minute onboarding call
+- A QR code at the counter (we provide it)
+- That's it. You're live.
+""")
+        with c2:
+            st.markdown("### Maggie's Approach")
+            st.markdown("""
+**Friend First. Consultant Second.**
+
+> *"Great restaurants deserve packed dining rooms. My job is to help make that happen."*
+
+How I approach restaurants:
+""")
+            from .pitch_materials import HOW_I_APPROACH
+            for item in HOW_I_APPROACH:
+                st.markdown(f"✓ {item}")
+
+        st.divider()
+        st.markdown(f"*{FOOTER_LINE}*")
+        st.caption("maggie@ritas2rewards.com | @ritas2rewards")
+
+        st.divider()
+        st.markdown("### 📋 Full Pitch Text (for reference / copy-paste)")
+        st.text_area("Flyer Content", value=FLYER_BODY.strip(), height=200,
+                     help="Copy this for email pitches, proposals, or manual outreach")
+
+    with tab_groups:
+        st.markdown("### 🏢 Priority Ownership Groups")
+        st.caption("Focus on group owners first — one conversation can unlock 5, 10, even 20+ locations.")
+
+        for group_name, info in sorted(PRIORITY_GROUPS.items(), key=lambda x: x[1]["priority"]):
+            color = ["#E53E3E", "#F6AD55", "#48BB78", "#63B3ED", "#805AD5",
+                     "#FC8181", "#9AE6B4", "#B2F5EA"][info["priority"] - 1]
+            with st.container(border=True):
+                c1, c2 = st.columns([2, 1])
+                c1.markdown(
+                    f'<span style="color:{color};font-size:1.1rem;font-weight:700">'
+                    f'#{info["priority"]} {group_name}</span>',
+                    unsafe_allow_html=True,
+                )
+                c1.write(f"**Territory:** {info['territory']}")
+                c1.write(f"**Note:** {info['note']}")
+                c2.markdown("**Concepts:**")
+                for concept in info["concepts"]:
+                    c2.write(f"• {concept}")
+
+    with tab_routes:
+        st.markdown("### 🗺️ DFW Weekly Route Strategy")
+
+        day_colors = {
+            "Monday": "#C53030", "Tuesday": "#6B46C1", "Wednesday": "#B83280",
+            "Thursday": "#B7791F", "Friday": "#276749", "Bonus": "#4A5568",
+        }
+
+        for day, strategy in TERRITORY_STRATEGY.items():
+            color = day_colors.get(day, "#718096")
+            st.markdown(
+                f'<div style="background:{color}18;border-left:4px solid {color};'
+                f'padding:10px 14px;border-radius:4px;margin-bottom:8px;">'
+                f'<strong style="color:{color}">{day}</strong> — {strategy}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.divider()
+        st.markdown("**Weekly Route Overview**")
+        st.markdown("""
+| Day | Territory | Focus | Est. Stops |
+|-----|-----------|-------|------------|
+| Monday | Plano | URG + Front Burner ownership groups | 8-10 |
+| Tuesday AM | Fairview | Newer concepts + owner operators | 8-12 |
+| Tuesday PM | Allen | Watters Creek concepts | 4-6 |
+| Wednesday | The Colony + Castle Hills | Entertainment + growth | 6-10 |
+| Thursday AM | The Colony | Follow-ups + demos | — |
+| Thursday PM | Carrollton | M Crowd + multi-unit operators | 8-10 |
+| Friday AM | Addison + Farmers Branch | Vandelay Hospitality (whale) | 6-9 |
+| Friday PM | Dallas Core | Dream accounts — appointments only | 6-10 |
+""")
+
+    with tab_tips:
+        st.markdown("### 💡 Pro Tips")
+        for tip in PRO_TIPS:
+            st.markdown(f"✅ {tip}")
+
+        st.divider()
+        st.markdown("### 🎯 Priority Targets (Quick Reference)")
+        from .pitch_materials import DREAM_ACCOUNTS
+        c1, c2 = st.columns(2)
+        c1.markdown("**Top Priority Groups:**")
+        for i, (name, info) in enumerate(
+            sorted(PRIORITY_GROUPS.items(), key=lambda x: x[1]["priority"])[:5], 1
+        ):
+            c1.write(f"#{i} {name}")
+        c2.markdown("**Dream Accounts (appointment required):**")
+        for da in DREAM_ACCOUNTS:
+            c2.write(f"⭐ {da}")
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -845,7 +1048,8 @@ def main() -> None:
     st.title(f"🍽️ {COMPANY_NAME} Outreach Engine")
     st.caption(f"Area: **{area_name}**")
 
-    tab_labels = ["🏠 Dashboard", "🍽️ Restaurants", "✉️ Compose", "📈 Rankings", "🤝 Handoffs", "⚙️ Setup"]
+    tab_labels = ["🏠 Dashboard", "🍽️ Restaurants", "✉️ Compose", "📈 Rankings",
+                  "🤝 Handoffs", "📋 Pitch & Strategy", "⚙️ Setup"]
     tabs = st.tabs(tab_labels)
 
     with tabs[0]: _render_dashboard(area_id)
@@ -853,7 +1057,8 @@ def main() -> None:
     with tabs[2]: _render_compose(area_id)
     with tabs[3]: _render_rankings(area_id)
     with tabs[4]: _render_handoffs()
-    with tabs[5]: _render_setup(area_id)
+    with tabs[5]: _render_pitch_strategy()
+    with tabs[6]: _render_setup(area_id)
 
 
 if __name__ == "__main__":

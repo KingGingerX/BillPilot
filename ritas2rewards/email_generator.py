@@ -8,6 +8,9 @@ from typing import Optional
 import anthropic
 
 from .config import ANTHROPIC_API_KEY, COMPANY_NAME, FROM_NAME, PROGRAM_URL, SENDER_NAME
+from .pitch_materials import (
+    APPROACH_PRINCIPLES, MISSION, SENDER_PHILOSOPHY, TAGLINE, VALUE_PROPS,
+)
 
 _client: Optional[anthropic.Anthropic] = None
 
@@ -19,91 +22,126 @@ def _get_client() -> anthropic.Anthropic:
     return _client
 
 
-_SYSTEM = f"""You are a senior outreach strategist for {COMPANY_NAME}, a restaurant loyalty and rewards platform.
-Your emails are legendary in the industry for never getting marked as spam and for getting restaurant owners to actually reply.
+_SYSTEM = f"""You are {SENDER_NAME}, founder of ritas2rewards — a DFW-based connector who helps local restaurants attract full-paying diners through travel + rewards partnerships.
 
-Rules you NEVER break:
-1. Keep the entire email under 120 words. Managers read 100s of emails daily — respect their time.
-2. Never use buzzwords: "synergy", "leverage", "innovative", "game-changer", "partner ecosystem", "best-in-class".
-3. Never use a generic opener like "I hope this email finds you well" or "My name is...".
-4. Lead with a RESULT or a SPECIFIC FACT that is relevant to their restaurant.
-5. Subject lines must NOT look like marketing. They should look like a message from a real person.
-6. One clear call-to-action per email. Never two.
-7. Sign off as "{SENDER_NAME}" from {COMPANY_NAME}. Keep the signature minimal.
+Your mission: "{MISSION}"
+Your approach: {SENDER_PHILOSOPHY}
+
+Principles you live by:
+{chr(10).join(f"- {p}" for p in APPROACH_PRINCIPLES)}
+
+Your email style:
+1. Under 120 words. Restaurant owners get 100+ emails a day. Every sentence must earn its place.
+2. Zero corporate buzzwords. No "synergy", "leverage", "ecosystem", "game-changer", "innovative".
+3. Never open with "I hope this finds you well" or "My name is...". Start with something real.
+4. You are a DFW local writing to a fellow DFW restaurant person — warm, direct, genuine.
+5. Subject lines feel like they're from a friend or someone who visited, not a marketing campaign.
+6. One ask per email. Never two.
+7. Sign off as "{SENDER_NAME}" with minimal signature. Include "ritas2rewards" not a formal company name.
+
+ritas2rewards value to restaurants: {' '.join(VALUE_PROPS)} {TAGLINE}.
 
 You respond ONLY with valid JSON: {{"subject": "...", "body": "..."}}
-Do not include any other text outside the JSON."""
+No other text outside the JSON."""
 
 
 def _stage_prompt(stage: str, restaurant: dict, prev_subject: Optional[str] = None) -> str:
     name = restaurant.get("name", "your restaurant")
-    city = restaurant.get("city", "your city")
+    city = restaurant.get("city", "DFW")
     cuisine = restaurant.get("cuisine_type", "")
     rating = restaurant.get("rating", "")
     contact = restaurant.get("contact_name", "")
+    group = restaurant.get("ownership_group", "")
+    is_priority = restaurant.get("is_priority", 0)
+
     greeting = f"Hey {contact}," if contact else "Hey,"
+    group_note = (
+        f"\nImportant: {name} is part of the {group} ownership group. "
+        f"Lead with the opportunity to bring the whole group in — one conversation, multiple locations."
+        if group else ""
+    )
+    priority_note = (
+        "\nThis is a high-priority target. The subject line and opening sentence need to be especially sharp."
+        if is_priority else ""
+    )
 
     prompts = {
         "cold_outreach": f"""
 Write a cold outreach email for {name}, a {cuisine or "restaurant"} in {city}.
 {f"They have a {rating}/5 rating." if rating else ""}
+{group_note}
+{priority_note}
 
-Goal: Get a reply. Not to sell — just to open a conversation.
-Angle: Rita's Rewards members spent over $2M at participating {city} restaurants last year.
-{name} has no rewards program, meaning their regulars earn points at competing spots.
-Make them feel the opportunity cost of not being in the program.
+You are Maggie — a DFW local who genuinely loves great restaurants and wants to help them fill seats.
+Friend-first approach: don't sell, just connect. Make them feel like you've been to their place.
 
-Subject: Must feel like it's from a real person, not a company. Create intrigue or FOMO.
+Goal: Get ONE reply. Not to sell ritas2rewards — just to start a real conversation.
+Angle: Their regulars deserve a reason to keep coming back. DFW diners using ritas2rewards
+are actively choosing where to eat based on which restaurants participate.
+{name} is missing that foot traffic.
+
+Subject: Reads like a text from a local, not a marketing email.
 Body greeting: {greeting}
-End with a single low-commitment ask (e.g. "worth a quick look?")
+End with one low-commitment ask that's easy to say yes to.
 """,
 
         "follow_up_1": f"""
 Write a 3-day follow-up email for {name} in {city}. They haven't replied to the first email.
-Previous subject was: "{prev_subject or 'cold outreach'}"
+Previous subject was: "{prev_subject or 'initial outreach'}"
+{group_note}
 
-Reply-chain strategy: Make the subject look like a "Re:" reply so it catches attention.
-Different angle from the first email: focus on the competitive advantage — nearby restaurants
-in {city} are already using Rita's Rewards while {name} isn't yet.
+You are Maggie. You're not following up as a salesperson — you genuinely want to help {name} grow.
+Use the reply-chain subject format (Re: ...) so it looks like a continuation of a real conversation.
 
-Keep it even shorter. Under 80 words. One clear ask: "Can I send the one-pager?"
+Different angle: What are other {city} restaurants gaining right now that {name} isn't?
+Be brief — under 80 words. End with one soft ask: can you send something short?
 """,
 
         "follow_up_2": f"""
-Write a final automated follow-up email for {name} in {city}. Two previous emails with no reply.
+Write a final outreach email for {name} in {city}. No reply after two previous emails.
+{group_note}
 
-This is the "last one from me" email — creates soft urgency without being pushy.
-Mention that Rita's Rewards is finishing its {city} rollout this month and {cuisine or "restaurant"}
-category slots are limited. If not now, no hard feelings.
+You are Maggie. This is your last automated touch — be real and a little self-aware about it.
+No pressure. Just a genuine check-in and a soft door left open.
 
-Subject: Must feel personal and a little self-aware, not automated.
-Keep it under 70 words. One CTA: invite them to say if timing is wrong.
+Angle: DFW has limited spots for the {cuisine or "dining"} category in ritas2rewards.
+Once filled, {name} would be competing with whoever got in first.
+
+Subject: Feels personal, not automated. A little vulnerable is OK.
+Under 70 words. One ask: just let me know if the timing is off.
 """,
 
         "interested_response": f"""
-Write a warm follow-up email for {name} after they responded showing interest.
+Write a warm, excited follow-up email for {name} after they responded showing interest.
+{group_note}
 
-Now is the time to deliver value and move toward a call.
-Cover 3 things briefly: (1) what Rita's Rewards does for restaurants,
-(2) the typical result in first 60 days, (3) how easy onboarding is.
-End by proposing a specific 15-minute call.
+You are Maggie — genuinely thrilled they replied. This is a real conversation now.
+Shift from outreach mode to value-delivery mode. Be warm and specific.
 
-Subject: Warm, personal, confirming the next step.
-Program URL to include: {PROGRAM_URL}
+Cover briefly: (1) what ritas2rewards actually does for restaurants like {name},
+(2) what results look like in the first 60 days, (3) how dead-simple onboarding is.
+End with proposing a specific 15-minute coffee or call.
+
+Subject: Feels like a warm reply from someone excited to help.
+Program URL to include if relevant: {PROGRAM_URL}
 """,
 
         "proposal": f"""
-Write a proposal email for {name}. They are interested and we want to close.
+Write a proposal email for {name}. They're interested and ready to see the full picture.
+{group_note}
 
-This is a brief summary email with their "partnership package":
-- Featured listing in Rita's app for {city}'s {cuisine or "restaurant"} category
-- Targeted push notifications to local Rita's Rewards members
-- Monthly analytics: repeat-visit rates, foot traffic trends
-- Zero upfront cost — performance-based model
-- What we need from them: 15 minutes + a QR code at the counter
+You are Maggie. This is the "here's exactly what your partnership looks like" email.
+Be specific to {name} and {city}. Make it easy to say yes.
 
-End with a direct ask to book an onboarding call. Include: {PROGRAM_URL}
-Subject: Feels like a formal (but friendly) next step, personalized to {name}.
+Include:
+- What {name} gets: visibility to ritas2rewards diners in {city}'s {cuisine or "dining"} category,
+  push campaigns on slow nights, monthly repeat-visit analytics
+- Zero upfront cost — we win when they win
+- What they need to do: 15-minute call + QR code at the counter (we provide it)
+- Clear next step: book their onboarding call
+
+Subject: Personal and action-oriented — feels like the final step of a real conversation.
+Include: {PROGRAM_URL}
 """,
     }
 
@@ -141,76 +179,86 @@ def generate_email(restaurant: dict, stage: str,
 
 
 def _static_fallback(restaurant: dict, stage: str) -> dict[str, str]:
-    """Pre-written high-converting templates used when Claude is unavailable."""
+    """Pre-written templates in Maggie's brand voice. Used when Claude is unavailable."""
     name = restaurant.get("name", "your restaurant")
-    city = restaurant.get("city", "your city")
+    city = restaurant.get("city", "DFW")
     cuisine = restaurant.get("cuisine_type", "")
     contact = restaurant.get("contact_name", "")
+    group = restaurant.get("ownership_group", "")
     greeting = f"Hey {contact}," if contact else "Hey,"
+    group_line = (
+        f"\n\nP.S. If this is a good fit for {name}, I'd love to explore what it "
+        f"looks like across the full {group} family."
+        if group else ""
+    )
 
     templates = {
         "cold_outreach": {
             "subject": random.choice([
-                f"{name} — quick question",
-                f"Your regulars are earning points somewhere else",
-                f"One thing {name} doesn't have yet",
-                f"2 {city} spots near you already doing this",
+                f"{name} — quick question from a DFW local",
+                f"Your regulars deserve a reason to keep coming back",
+                f"Something I noticed about {name}",
+                f"A few {city} restaurants are doing something your regulars would love",
             ]),
             "body": (
                 f"{greeting}\n\n"
-                f"Rita's Rewards members spent $2.3M at participating {city} restaurants last year "
-                f"— and right now there's no {cuisine or 'restaurant'} in your area in the program.\n\n"
-                f"That means your regulars are earning rewards at spots across town instead of coming back to {name}.\n\n"
-                f"Worth a 2-minute look? I can send a quick overview.\n\n"
-                f"— {SENDER_NAME}\n{COMPANY_NAME}"
+                f"I help DFW restaurants attract full-paying guests through travel + rewards "
+                f"partnerships, and {name} came up as a natural fit.\n\n"
+                f"Your regulars are choosing where to eat based on where they earn rewards. "
+                f"Right now, that's probably not {name} — but it could be.{group_line}\n\n"
+                f"Worth a 2-minute conversation?\n\n"
+                f"— {SENDER_NAME}\nritas2rewards | @ritas2rewards"
             ),
         },
         "follow_up_1": {
-            "subject": f"Re: {name} — quick question",
+            "subject": f"Re: {name} — quick question from a DFW local",
             "body": (
                 f"{greeting}\n\n"
-                f"Realized I may have caught you at a busy time — totally get it.\n\n"
-                f"Short version: restaurants using Rita's Rewards see an average 28% bump in repeat visits "
-                f"within 60 days. No upfront cost.\n\n"
-                f"Just reply \"send it\" and I'll shoot over the one-pager.\n\n"
-                f"— {SENDER_NAME}"
+                f"Caught you at a busy time — totally get it.\n\n"
+                f"Short version: DFW restaurants in ritas2rewards are pulling more repeat visits "
+                f"from diners who pick where to eat based on rewards. Zero upfront cost.\n\n"
+                f"Can I send you a one-pager?\n\n"
+                f"— {SENDER_NAME}, ritas2rewards"
             ),
         },
         "follow_up_2": {
-            "subject": "Last one from me (promise)",
+            "subject": "Last one from me — promise 🤞",
             "body": (
                 f"{greeting}\n\n"
-                f"I'll leave you alone after this.\n\n"
-                f"We're finishing the {city} rollout this month, and once the "
-                f"{cuisine or 'restaurant'} category fills up, we close new applications for the area.\n\n"
-                f"If the timing is off, just say the word. But if you're even a little curious — I'm here.\n\n"
-                f"— {SENDER_NAME}, {COMPANY_NAME}"
+                f"Not going to keep bugging you — this is my last note.\n\n"
+                f"We're filling the {city} {cuisine or 'dining'} category this month. "
+                f"Once it's full, that's it for new partners in this area.\n\n"
+                f"If the timing's just off, no worries — just let me know. "
+                f"Either way, {name} is doing great things.\n\n"
+                f"— {SENDER_NAME}\nritas2rewards"
             ),
         },
         "interested_response": {
-            "subject": f"Here's everything on {COMPANY_NAME} 🍽️",
+            "subject": "So glad you replied — here's the full picture on ritas2rewards",
             "body": (
-                f"{greeting} Great to hear from you!\n\n"
-                f"Here's the quick version of what {COMPANY_NAME} does for restaurants:\n"
-                f"• Puts {name} in front of 14,000+ local diners actively choosing where to eat for rewards\n"
-                f"• Most partners see 25–35% more repeat visits within 60 days\n"
-                f"• Onboarding takes 15 minutes — just a QR code at your counter\n\n"
-                f"Want to talk through it? I can walk you through everything in a quick call: {PROGRAM_URL}\n\n"
-                f"— {SENDER_NAME}, {COMPANY_NAME}"
+                f"{greeting}\n\n"
+                f"Really glad to hear from you!\n\n"
+                f"Here's what ritas2rewards does for {city} restaurants like {name}:\n"
+                f"• Connects you with diners actively choosing where to eat based on rewards\n"
+                f"• Partners see stronger repeat visit rates in the first 60 days\n"
+                f"• Onboarding is 15 minutes — a QR code at your counter and you're live\n"
+                f"• Zero upfront cost — I only win when you win{group_line}\n\n"
+                f"I'd love to walk you through it. Coffee or a quick call this week?\n\n"
+                f"— {SENDER_NAME}\nritas2rewards | {PROGRAM_URL}"
             ),
         },
         "proposal": {
-            "subject": f"Your {COMPANY_NAME} partnership package — {name}",
+            "subject": f"Your ritas2rewards partnership — {name}",
             "body": (
                 f"{greeting}\n\n"
                 f"Here's what your {name} partnership looks like:\n\n"
-                f"✓ Featured in Rita's app for {city}'s {cuisine or 'dining'} category\n"
-                f"✓ Push notifications to local members on slow nights\n"
-                f"✓ Monthly repeat-visit analytics dashboard\n"
-                f"✓ Zero upfront cost — we only win when you win\n\n"
-                f"To get started: {PROGRAM_URL}\n\n"
-                f"Ready to get {name} in front of people choosing where to eat tonight?\n\n"
-                f"— {SENDER_NAME}\n{COMPANY_NAME}"
+                f"✓ Visibility to DFW diners choosing restaurants by rewards program\n"
+                f"✓ Push campaigns to ritas2rewards members on your slower nights\n"
+                f"✓ Monthly repeat-visit analytics — see what's working\n"
+                f"✓ Zero upfront — we grow together{group_line}\n\n"
+                f"15 minutes + a QR code is all it takes to get started.\n\n"
+                f"Book your onboarding call: {PROGRAM_URL}\n\n"
+                f"— {SENDER_NAME}\nritas2rewards | maggie@ritas2rewards.com"
             ),
         },
     }

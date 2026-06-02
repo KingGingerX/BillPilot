@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS areas (
     lat          REAL,
     lng          REAL,
     radius_miles REAL DEFAULT 5.0,
+    route_day    TEXT,
+    route_color  TEXT DEFAULT '#718096',
+    focus        TEXT,
+    est_stops    TEXT,
     created_at   TEXT DEFAULT (datetime('now'))
 );
 
@@ -47,6 +51,8 @@ CREATE TABLE IF NOT EXISTS restaurants (
     human_assigned_to  TEXT,
     human_assigned_at  TEXT,
     nearby_qualified   INTEGER DEFAULT 0,
+    ownership_group    TEXT,
+    is_priority        INTEGER DEFAULT 0,
     notes              TEXT,
     source             TEXT DEFAULT 'manual',
     created_at         TEXT DEFAULT (datetime('now')),
@@ -109,6 +115,24 @@ def _conn() -> sqlite3.Connection:
 def init_db() -> None:
     with _conn() as c:
         c.executescript(_SCHEMA)
+        # Migration: add new columns to existing databases
+        _migrate(c)
+
+
+def _migrate(c: sqlite3.Connection) -> None:
+    migrations = [
+        ("areas", "route_day",   "TEXT"),
+        ("areas", "route_color", "TEXT DEFAULT '#718096'"),
+        ("areas", "focus",       "TEXT"),
+        ("areas", "est_stops",   "TEXT"),
+        ("restaurants", "ownership_group", "TEXT"),
+        ("restaurants", "is_priority",     "INTEGER DEFAULT 0"),
+    ]
+    for table, col, coldef in migrations:
+        try:
+            c.execute(f"ALTER TABLE {table} ADD COLUMN {col} {coldef}")
+        except Exception:
+            pass  # column already exists
 
 
 def _now() -> str:
@@ -118,11 +142,13 @@ def _now() -> str:
 # ── Areas ─────────────────────────────────────────────────────────────────────
 
 def create_area(name: str, city: str, state: str, lat: float, lng: float,
-                radius_miles: float = 5.0) -> int:
+                radius_miles: float = 5.0, route_day: str = "", route_color: str = "#718096",
+                focus: str = "", est_stops: str = "") -> int:
     with _conn() as c:
         cur = c.execute(
-            "INSERT INTO areas (name,city,state,lat,lng,radius_miles) VALUES (?,?,?,?,?,?)",
-            (name, city, state, lat, lng, radius_miles),
+            "INSERT INTO areas (name,city,state,lat,lng,radius_miles,route_day,route_color,focus,est_stops) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (name, city, state, lat, lng, radius_miles, route_day, route_color, focus, est_stops),
         )
         return cur.lastrowid  # type: ignore[return-value]
 
@@ -154,7 +180,8 @@ def delete_area(area_id: int) -> None:
 _REST_FIELDS = [
     "area_id", "external_id", "name", "address", "city", "state", "zip_code",
     "lat", "lng", "phone", "email", "website", "cuisine_type", "price_level",
-    "rating", "review_count", "contact_name", "notes", "source",
+    "rating", "review_count", "contact_name", "ownership_group", "is_priority",
+    "notes", "source",
 ]
 
 
