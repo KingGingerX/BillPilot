@@ -15,3 +15,6 @@ lxml>=4.9
 
 # Dev / testing
 pytest>=8.0
+
+# Rita's Rewards outreach engine
+# (uses requests + anthropic + streamlit already listed above — no extra deps required)
