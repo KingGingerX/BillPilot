@@ -445,6 +445,16 @@
     <button type="submit" id="submitBtn">🔍&nbsp; Research Investor &amp; Build Pitch Strategy</button>
   </form>
 
+  <div style="text-align:center;margin:10px 0 20px;font-size:0.83rem;color:var(--dim);">
+    — or —&nbsp;
+    <button onclick="loadDemo()" style="background:none;border:none;color:var(--blue);
+      font-size:0.83rem;cursor:pointer;text-decoration:underline;font-family:inherit;
+      touch-action:manipulation;">
+      Try Demo Preview
+    </button>
+    &nbsp;to see a sample result
+  </div>
+
   <!-- Loading state -->
   <div id="loading">
     <div class="spinner"></div>
@@ -843,6 +853,115 @@ el('researchForm').addEventListener('submit', async function(e) {
     el('submitBtn').disabled = false;
   }
 });
+
+/* ── Demo mode ── */
+function loadDemo() {
+  _lastVentureName = 'CleanSlate Health';
+  _lastQuery = 'naval_ravikant';
+  _lastData = {
+    name: 'Naval Ravikant',
+    firm_or_affiliation: 'AngelList · Founder',
+    location: 'San Francisco, CA',
+    bio_summary: 'Naval Ravikant is an entrepreneur and angel investor best known as the co-founder and former CEO of AngelList. He has been an early investor in over 200 companies including Twitter, Uber, Yammer, and Stack Overflow, with a portfolio value exceeding $5 billion. He is widely followed for his philosophy on wealth creation, happiness, and leverage.',
+    professional_background: 'Naval co-founded Epinions and Vast.com before AngelList. After exiting AngelList in 2022, he focuses on personal writing, podcasting, and selective angel investing. His "How to Get Rich" tweetstorm has become a foundational text in startup culture.',
+    investment_focus: ['Consumer Tech','Health & Wellness','Crypto / Web3','Media & Content','Future of Work','B2B SaaS'],
+    notable_investments: ['Twitter (2009)','Uber (2010)','Yammer (2010)','Stack Overflow (2011)','Notion (2019)','OpenSea (2021)'],
+    investment_stage: 'Pre-Seed to Seed',
+    typical_check_size: '$25K – $500K (estimated)',
+    geographic_preference: 'US-focused, remote-friendly globally',
+    what_they_look_for: [
+      'Founders who deeply understand the specific lever of leverage they\'re pulling',
+      'Products with genuine network effects or compounding advantages',
+      'Founders who can explain why now — why this specific window exists',
+      'Unique insight or contrarian view the market doesn\'t yet hold',
+      'Extreme clarity of thinking; good writing signals good thinking',
+    ],
+    founder_preferences: [
+      'Intellectually honest — willing to be wrong and update beliefs',
+      'Mission-driven but financially literate',
+      'Can recruit and retain a high-quality technical team',
+      'Has a personal "why" that goes beyond just making money',
+    ],
+    red_flags: [
+      'Vanity metrics over real unit economics',
+      'Founders who can\'t explain the core value proposition in one sentence',
+      'Over-reliance on paid acquisition with no organic growth story',
+      'Cap tables with too many angels or unclear governance',
+    ],
+    contact_channels: {
+      linkedin: 'linkedin.com/in/navalravikant',
+      twitter: '@naval',
+      website: 'nav.al',
+      email: 'Not publicly listed — warm intro strongly preferred',
+      best_approach: 'Best reached via a trusted mutual connection or by engaging meaningfully with his public writing. Cold outreach is rarely successful. Respond thoughtfully to his tweets to get on his radar first.',
+    },
+    recent_themes: 'Focused on AI-native applications, longevity and health tech, and the intersection of philosophy with practical wealth creation. Recently vocal about AI replacing knowledge work and the importance of building "specific knowledge" that can\'t be outsourced.',
+    quotes: [
+      'Arm yourself with specific knowledge, accountability, and leverage.',
+      'The returns in life are non-linear. Seek specific knowledge and build unique skills.',
+    ],
+    data_confidence: { level: 'high', note: 'Naval is extensively documented — his investments, philosophy, and public statements are well covered in media and his own writing.' },
+    venture_alignment_score: 8,
+    venture_alignment_rationale: 'CleanSlate Health aligns strongly with Naval\'s growing interest in health technology and his belief in leveraging software to create outsized personal impact. His pre-seed to seed stage focus and typical check size match your current raise. The mission-driven nature of the venture aligns with his stated preference for founders who have a genuine "why" beyond financial returns. Slight uncertainty: his recent focus has shifted toward AI and crypto; health tech without a strong AI layer may require extra framing.',
+    pitch_strategy: {
+      headline_hook: 'CleanSlate Health uses AI-driven care navigation to cut the 14-month average wait time for mental health treatment down to 72 hours — we\'re applying the leverage of software to a system that\'s been broken for decades.',
+      key_alignment_points: [
+        'Directly addresses Naval\'s interest in health tech and longevity',
+        'Software-driven leverage applied to a real, non-obvious market inefficiency',
+        'Mission and financial upside are inseparable — same as his investment thesis',
+        'Pre-seed stage and check size match his sweet spot',
+      ],
+      core_talking_points: [
+        'The mental health system is a coordination failure, not a resource failure — software solves coordination failures',
+        '14-month average wait → 72-hour access: that\'s a 140x improvement, not an incremental one',
+        'Provider network effects: each new provider makes every patient better served',
+        'Unit economics: $18 CAC, $1,200 LTV — already profitable at small scale',
+      ],
+      metrics_to_lead_with: [
+        '820 patients served, 94% reduction in time-to-treatment in pilot',
+        '$18 CAC, $1,200 LTV (66x ratio)',
+        '3 enterprise contracts signed pre-launch',
+      ],
+      questions_to_ask_them: [
+        'Your writing on specific knowledge resonated deeply — how do you think about healthcare\'s "specific knowledge" problem where expertise is siloed by specialty?',
+        'How do you evaluate health tech investments where regulatory moats are both a risk and a competitive barrier?',
+        'Are you more excited by direct-to-consumer or B2B-first health plays right now?',
+      ],
+      things_to_avoid: [
+        'Don\'t lead with social impact framing alone — pair it with hard economics',
+        'Don\'t use jargon like "omnichannel" or "care continuum"',
+        'Don\'t pitch deck-first; lead with the insight and the specific knowledge you have',
+        'Don\'t ask for a meeting without showing you\'ve read his work seriously',
+      ],
+      follow_up_strategy: 'If no response after 2 weeks, engage with one of his recent posts with a substantive observation (not a pitch). If still no response after another 2 weeks, reach out to AngelList network for a warm intro. Naval values quality over persistence.',
+    },
+    outreach_email: {
+      subject_line: 'CleanSlate Health — software leverage on a broken coordination system',
+      body: `Naval,
+
+Your framing of "software as leverage" has stuck with me — and I think mental healthcare is one of the last giant broken systems that hasn't had that lever applied seriously yet.
+
+CleanSlate Health cuts the average 14-month wait time for mental health treatment to 72 hours using AI-driven care navigation and a provider network built around coordination rather than capacity. We're not adding more therapists — we're making the existing ones 10x more reachable. 820 patients served in our pilot at $18 CAC and $1,200 LTV.
+
+We're raising a $750K pre-seed. Given your focus on specific knowledge and health tech, and your seed-stage thesis, I think there could be strong alignment here.
+
+Would you be open to a 20-minute call this month?
+
+[Your name]
+Founder, CleanSlate Health
+[LinkedIn] · [Phone]`,
+    },
+    suggested_research_queries: [
+      '"Naval Ravikant" health tech investment 2024 2025',
+      '"Naval Ravikant" angel.co portfolio full list',
+      '"Naval Ravikant" mental health wellness investments',
+    ],
+  };
+  el('error').style.display = 'none';
+  el('loading').style.display = 'none';
+  renderResults(_lastData, { investor_name: 'Naval Ravikant', venture_name: 'CleanSlate Health' });
+  el('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
 
 /* ── Auto-expand first accordion after results render ── */
 const observer = new MutationObserver(() => {
