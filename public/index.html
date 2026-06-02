@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>InvestorIQ — Angel Investor Research</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎯</text></svg>" />
+  <style>
+    /* ── Variables ── */
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1f2937;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --dim:       #6e7681;
+      --primary:   #6366f1;
+      --secondary: #8b5cf6;
+      --success:   #3fb950;
+      --warning:   #e3b341;
+      --danger:    #f85149;
+      --blue:      #58a6ff;
+      --grad:      linear-gradient(135deg,#6366f1,#8b5cf6);
+      --radius:    12px;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: calc(24px + var(--safe-bottom));
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(180deg,#161b22,#0d1117);
+      border-bottom: 1px solid #21262d;
+      padding: calc(16px + var(--safe-top)) 20px 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .header-inner { display:flex; align-items:center; justify-content:center; gap:10px; }
+    .logo { font-size: 1.6rem; }
+    .brand { text-align: left; }
+    .brand h1 {
+      font-size: 1.35rem; font-weight: 800;
+      background: linear-gradient(135deg,#e6edf3,#8b949e);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0; line-height: 1.1;
+    }
+    .brand p { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; margin:2px 0 0; }
+
+    /* ── Status badge ── */
+    #apiStatus {
+      margin-top: 10px;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1c1200; border: 1px solid #5a3800; border-radius: 20px;
+      padding: 4px 12px; font-size: 0.75rem; color: #ffa657;
+    }
+    #apiStatus.ok { background:#0d2b1e; border-color:#2a5a3e; color:#3fb950; }
+    #apiStatus .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+    /* ── Main layout ── */
+    main { max-width: 680px; margin: 0 auto; padding: 20px 16px; }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+    .section-label.purple { color: var(--primary); }
+    .section-label.violet { color: var(--secondary); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+    }
+
+    /* ── Form elements ── */
+    .field { margin-bottom: 14px; }
+    label {
+      display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    input[type="text"], textarea, select {
+      width: 100%; padding: 12px 14px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 9px; color: var(--text);
+      font-family: inherit; font-size: 16px; /* prevents iOS zoom */
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+    input::placeholder, textarea::placeholder { color: var(--dim); }
+    textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%238b949e'%3E%3Cpath d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      padding-right: 36px; cursor: pointer;
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Toggle ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 9px; margin-bottom: 16px;
+    }
+    .toggle-row span { font-size: 0.88rem; color: var(--muted); }
+    .toggle-row strong { display:block; font-size:0.93rem; color:var(--text); }
+    .toggle {
+      position: relative; width: 44px; height: 26px;
+      flex-shrink: 0; margin-left: 12px;
+    }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider {
+      position: absolute; inset: 0; background: #30363d;
+      border-radius: 13px; transition: 0.2s; cursor: pointer;
+    }
+    .slider::before {
+      content:''; position:absolute; width:20px; height:20px;
+      left:3px; top:3px; background:#fff; border-radius:50%;
+      transition:0.2s;
+    }
+    .toggle input:checked + .slider { background: var(--primary); }
+    .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+    /* ── Submit button ── */
+    #submitBtn {
+      width: 100%; padding: 15px; border: none; border-radius: 11px;
+      background: var(--grad); color: #fff;
+      font-family: inherit; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      touch-action: manipulation; letter-spacing: 0.01em;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    }
+    #submitBtn:active { transform: scale(0.98); }
+    #submitBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Loading ── */
+    #loading { display:none; text-align:center; padding: 40px 16px; }
+    .spinner {
+      width: 44px; height: 44px; border: 3px solid #21262d;
+      border-top-color: var(--primary); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .loading-sub { font-size: 0.85rem; color: var(--muted); }
+    .steps { list-style:none; text-align:left; max-width:300px; margin: 20px auto 0; }
+    .steps li {
+      padding: 8px 0; font-size: 0.85rem; color: var(--dim);
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid #21262d;
+    }
+    .steps li:last-child { border:none; }
+    .steps li.active { color: var(--text); }
+    .steps li.done { color: var(--success); }
+    .step-icon { width: 20px; text-align:center; font-size:1rem; }
+
+    /* ── Error ── */
+    #error {
+      display:none; background:#1c0a0a; border:1px solid #5a1c1c;
+      border-radius:var(--radius); padding:16px 18px; margin-bottom:16px;
+      color: var(--danger); font-size:0.9rem;
+    }
+
+    /* ── Results ── */
+    #results { display:none; }
+
+    /* Investor overview card */
+    .investor-card {
+      background: linear-gradient(135deg,#161b22,#0d1117);
+      border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .investor-name { font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .investor-meta { font-size: 0.88rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+    .badges-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding: 5px 11px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; white-space:nowrap;
+    }
+    .badge-conf-high { background:#0d2b1e; color:#3fb950; border:1px solid #2a5a3e; }
+    .badge-conf-medium { background:#1a1200; color:#e3b341; border:1px solid #3d2e00; }
+    .badge-conf-low { background:#1c0a0a; color:#f85149; border:1px solid #5a1c1c; }
+    .badge-stage { background:#0d2145; color:#58a6ff; border:1px solid #1f4280; }
+    .badge-check { background:#161b22; color:#79c0ff; border:1px solid #30363d; }
+
+    /* Score bar */
+    .score-section { margin-top: 16px; }
+    .score-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .score-label { font-size:0.78rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.06em; }
+    .score-value { font-size:1.5rem; font-weight:800; }
+    .score-bar-bg { height:8px; background:#21262d; border-radius:4px; overflow:hidden; }
+    .score-bar-fill { height:100%; border-radius:4px; transition: width 0.8s ease; }
+    .score-rationale { font-size:0.87rem; color:var(--muted); margin-top:10px; line-height:1.6; }
+
+    /* Stats grid */
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+    .stat-label { font-size:0.68rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+    .stat-value { font-size:0.93rem; font-weight:700; color:var(--text); }
+
+    /* Accordion */
+    .accordion { margin-bottom: 10px; }
+    .accordion-btn {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; font-family:inherit; font-size:0.93rem; font-weight:700;
+      color: var(--text); cursor:pointer; text-align:left; transition:background 0.15s;
+      touch-action: manipulation;
+    }
+    .accordion-btn:active { background: var(--surface2); }
+    .accordion-btn[aria-expanded="true"] { border-radius: var(--radius) var(--radius) 0 0; }
+    .accordion-icon { transition: transform 0.2s; font-size:0.8rem; color:var(--muted); flex-shrink:0; }
+    .accordion-btn[aria-expanded="true"] .accordion-icon { transform: rotate(180deg); }
+    .accordion-body {
+      background: var(--surface); border: 1px solid var(--border); border-top:none;
+      border-radius: 0 0 var(--radius) var(--radius); padding: 16px;
+      display: none;
+    }
+    .accordion-body.open { display: block; }
+
+    /* Content inside accordions */
+    .content-label {
+      font-size:0.72rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.06em; color:var(--dim); margin: 14px 0 8px;
+    }
+    .content-label:first-child { margin-top:0; }
+    .content-text { font-size:0.9rem; color:var(--muted); line-height:1.65; }
+    .tag-cloud { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+    .tag {
+      display:inline-block; padding:4px 10px; border-radius:20px;
+      font-size:0.75rem; font-weight:600;
+    }
+    .tag-blue { background:#0d2145; color:#79c0ff; border:1px solid #1f4280; }
+    .tag-orange { background:#2d1b00; color:#ffa657; border:1px solid #5a3800; }
+    .tag-green { background:#0d2b1e; color:#56d364; border:1px solid #1a4d34; }
+    .bullet-list { list-style:none; padding:0; }
+    .bullet-list li {
+      padding: 6px 0; font-size:0.9rem; color:var(--muted);
+      border-bottom: 1px solid #21262d; display:flex; gap:10px; align-items:flex-start;
+      line-height: 1.5;
+    }
+    .bullet-list li:last-child { border:none; }
+    .bullet-icon { flex-shrink:0; margin-top:1px; }
+    blockquote {
+      border-left: 3px solid var(--border); padding: 10px 14px;
+      margin: 10px 0; color: var(--muted); font-style:italic; font-size:0.88rem;
+    }
+
+    /* Pitch hook */
+    .hook-box {
+      background: rgba(99,102,241,0.08); border:1px solid var(--primary);
+      border-radius: 11px; padding: 16px 18px; margin-bottom: 14px;
+    }
+    .hook-label { font-size:0.7rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.08em; color:var(--primary); margin-bottom:8px; }
+    .hook-text { font-size:1rem; font-weight:600; color:var(--text); line-height:1.6; }
+
+    /* Info box */
+    .info-box {
+      background: rgba(99,102,241,0.06); border-left:3px solid var(--primary);
+      border-radius: 0 8px 8px 0; padding:12px 16px;
+      font-size:0.88rem; color:var(--muted); line-height:1.65; margin-top:8px;
+    }
+    .info-box.green { border-left-color: var(--success); background:rgba(63,185,80,0.06); }
+
+    /* Email */
+    .email-header {
+      background: var(--surface2); border:1px solid var(--border);
+      border-radius: 9px 9px 0 0; padding: 10px 14px;
+      font-size:0.85rem; color:var(--muted);
+    }
+    .email-header strong { color:var(--text); }
+    .email-body {
+      background: var(--bg); border:1px solid var(--border); border-top:none;
+      border-radius: 0 0 9px 9px; padding: 14px;
+      font-size: 0.88rem; color:var(--muted); white-space:pre-wrap;
+      line-height:1.7; font-family: inherit;
+    }
+
+    /* Download buttons */
+    .download-group { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+    .btn-dl {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      padding:13px 20px; border:1px solid var(--border); border-radius:9px;
+      background: var(--surface); color:var(--text); font-family:inherit;
+      font-size:0.93rem; font-weight:600; cursor:pointer; text-decoration:none;
+      transition: all 0.15s; touch-action: manipulation; width:100%;
+    }
+    .btn-dl:active { background: var(--surface2); border-color:var(--primary); }
+    .btn-dl.primary {
+      background: var(--grad); border-color: transparent;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.3); color:#fff;
+    }
+    .btn-dl.primary:active { opacity:0.9; }
+
+    /* Footer */
+    footer {
+      text-align:center; padding: 24px 16px calc(16px + var(--safe-bottom));
+      border-top: 1px solid #21262d; margin-top: 32px;
+      font-size: 0.75rem; color: var(--dim); line-height: 1.7;
+    }
+    .divider { height:1px; background:#21262d; margin:20px 0; }
+
+    /* Section heading */
+    .result-section-title {
+      font-size:1rem; font-weight:800; color:var(--text); margin:20px 0 10px;
+      display:flex; align-items:center; gap:8px;
+    }
+
+    /* Responsive — already mobile-first, just tablet+ tweaks */
+    @media (min-width: 600px) {
+      main { padding: 28px 24px; }
+      .investor-name { font-size: 1.6rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="logo">🎯</span>
+    <div class="brand">
+      <h1>InvestorIQ</h1>
+      <p>Angel Investor Research &amp; Pitch Intelligence</p>
+    </div>
+  </div>
+  <div id="apiStatus">
+    <span class="dot"></span>
+    <span id="apiStatusText">Checking API…</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Error banner -->
+  <div id="error"></div>
+
+  <!-- Form -->
+  <form id="researchForm">
+
+    <!-- Investor section -->
+    <div class="card">
+      <div class="section-label purple">◆ Investor to Research</div>
+
+      <div class="field">
+        <label for="investor_name">Investor Name *</label>
+        <input type="text" id="investor_name" name="investor_name"
+               placeholder="e.g. Naval Ravikant" autocomplete="name" required />
+      </div>
+
+      <div class="field">
+        <label for="firm">Firm / Affiliation</label>
+        <input type="text" id="firm" name="firm"
+               placeholder="e.g. AngelList, a16z, independent" />
+      </div>
+
+      <div class="field">
+        <label for="investor_notes">Notes You've Gathered (optional)</label>
+        <textarea id="investor_notes" name="investor_notes"
+                  placeholder="Paste anything helpful: bio, blog posts, tweets, portfolio, interview quotes…"></textarea>
+      </div>
+    </div>
+
+    <!-- Venture section -->
+    <div class="card">
+      <div class="section-label violet">◆ Your Venture</div>
+
+      <div class="field">
+        <label for="venture_name">Venture Name *</label>
+        <input type="text" id="venture_name" name="venture_name"
+               placeholder="e.g. CleanSlate Health" required />
+      </div>
+
+      <div class="field">
+        <label for="venture_description">What You're Building *</label>
+        <textarea id="venture_description" name="venture_description"
+                  placeholder="2–3 sentences: what it does, who it serves, how it works." required></textarea>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="sector">Sector *</label>
+          <input type="text" id="sector" name="sector"
+                 placeholder="e.g. HealthTech, CleanEnergy" required />
+        </div>
+        <div class="field">
+          <label for="stage">Stage *</label>
+          <select id="stage" name="stage">
+            <option>Pre-Seed</option>
+            <option>Seed</option>
+            <option>Series A</option>
+            <option>Series B+</option>
+            <option>Pre-Idea / Concept</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="mission">Mission — Why It Matters *</label>
+        <textarea id="mission" name="mission"
+                  placeholder="Why does this exist? What problem does it solve? What impact does it create?" required></textarea>
+      </div>
+    </div>
+
+    <!-- Web search toggle -->
+    <div class="toggle-row">
+      <div>
+        <strong>Live Web Search</strong>
+        <span>Searches for current info — adds ~15s but improves accuracy</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="enableWebSearch" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button type="submit" id="submitBtn">🔍&nbsp; Research Investor &amp; Build Pitch Strategy</button>
+  </form>
+
+  <!-- Loading state -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="loading-title">Researching <span id="loadingName"></span>…</div>
+    <div class="loading-sub">This takes 20–40 seconds</div>
+    <ul class="steps" id="stepList"></ul>
+  </div>
+
+  <!-- Results -->
+  <div id="results"></div>
+
+</main>
+
+<footer>
+  Research generated by AI based on publicly available information.<br>
+  Always verify before outreach — investor preferences change over time.<br>
+  Not financial, legal, or investment advice.
+</footer>
+
+<script>
+/* ── Utilities ── */
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function el(id) { return document.getElementById(id); }
+
+function tag(text, cls) {
+  return `<span class="tag ${cls}">${esc(text)}</span>`;
+}
+
+function bulletList(items, icon, iconStyle) {
+  if (!items || !items.length) return '<p style="color:var(--dim);font-size:.88rem">Not available</p>';
+  return `<ul class="bullet-list">${items.map(i =>
+    `<li><span class="bullet-icon" style="color:${iconStyle}">${icon}</span><span>${esc(i)}</span></li>`
+  ).join('')}</ul>`;
+}
+
+function accordion(id, icon, title, bodyHtml) {
+  return `
+  <div class="accordion">
+    <button class="accordion-btn" aria-expanded="false" onclick="toggleAccordion('${id}')">
+      <span>${icon} ${esc(title)}</span>
+      <span class="accordion-icon">▼</span>
+    </button>
+    <div class="accordion-body" id="${id}">${bodyHtml}</div>
+  </div>`;
+}
+
+function toggleAccordion(id) {
+  const body = el(id);
+  const btn = body.previousElementSibling;
+  const open = body.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+}
+
+/* ── API status check ── */
+async function checkApiStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    const badge = el('apiStatus');
+    const text = el('apiStatusText');
+    if (data.ok) {
+      badge.className = 'ok';
+      text.textContent = 'API Connected';
+    } else {
+      text.textContent = 'API Key Missing';
+    }
+  } catch {
+    el('apiStatusText').textContent = 'API Key Missing';
+  }
+}
+checkApiStatus();
+
+/* ── Loading steps ── */
+const STEPS = [
+  { icon:'🌐', text:'Searching the web for current information…' },
+  { icon:'📋', text:'Reading investor profile pages…' },
+  { icon:'🧠', text:'Analyzing with Claude AI…' },
+  { icon:'🎯', text:'Building tailored pitch strategy…' },
+  { icon:'✉️', text:'Crafting outreach email template…' },
+];
+
+let stepTimer = null;
+function startSteps() {
+  const list = el('stepList');
+  list.innerHTML = '';
+  let i = 0;
+  function addNext() {
+    if (i < STEPS.length) {
+      const li = document.createElement('li');
+      li.className = 'active';
+      li.innerHTML = `<span class="step-icon">${STEPS[i].icon}</span><span>${STEPS[i].text}</span>`;
+      // Mark previous as done
+      const prev = list.querySelector('li.active:last-child');
+      if (prev && prev !== li) prev.className = 'done';
+      list.appendChild(li);
+      i++;
+      stepTimer = setTimeout(addNext, 7000);
+    }
+  }
+  addNext();
+}
+function stopSteps() {
+  clearTimeout(stepTimer);
+  el('stepList').querySelectorAll('li').forEach(li => li.className = 'done');
+}
+
+/* ── Score color ── */
+function scoreColor(n) {
+  if (n >= 7) return 'var(--success)';
+  if (n >= 5) return 'var(--warning)';
+  return 'var(--danger)';
+}
+
+/* ── Render results ── */
+function renderResults(data, formData) {
+  const score = data.venture_alignment_score;
+  const conf = data.data_confidence || {};
+  const confLevel = (conf.level || 'unknown').toLowerCase();
+  const confBadge = {high:'badge-conf-high', medium:'badge-conf-medium', low:'badge-conf-low'}[confLevel] || 'badge-check';
+  const cc = data.contact_channels || {};
+  const ps = data.pitch_strategy || {};
+  const em = data.outreach_email || {};
+  const sc = data.suggested_research_queries || [];
+
+  /* Contact rows */
+  const contactRows = [
+    ['🔗', 'LinkedIn', cc.linkedin],
+    ['🐦', 'Twitter/X', cc.twitter],
+    ['🌐', 'Website', cc.website],
+    ['✉️', 'Email', cc.email],
+  ].filter(([,,v]) => v && v !== 'Not available' && v !== 'Unknown')
+   .map(([i,l,v]) => `<li><span class="bullet-icon">${i}</span><span><strong style="color:var(--text)">${l}:</strong> ${esc(v)}</span></li>`)
+   .join('');
+
+  /* Focus tags */
+  const focusTags = (data.investment_focus||[]).map(f => tag(f,'tag-blue')).join('');
+  const flagTags  = (data.red_flags||[]).map(f => tag(f,'tag-orange')).join('');
+  const avoidTags = (ps.things_to_avoid||[]).map(f => tag(f,'tag-orange')).join('');
+
+  const html = `
+  <!-- Investor overview -->
+  <div class="investor-card">
+    <div class="investor-name">${esc(data.name||formData.investor_name)}</div>
+    <div class="investor-meta">
+      ${esc(data.firm_or_affiliation||'')}${data.firm_or_affiliation&&data.location?' · ':''}${esc(data.location||'')}
+    </div>
+    <div class="badges-row">
+      <span class="badge ${confBadge}">${confLevel} confidence</span>
+      ${data.investment_stage ? `<span class="badge badge-stage">${esc(data.investment_stage)}</span>` : ''}
+      ${score != null ? `<span class="badge badge-check">Fit: ${score}/10</span>` : ''}
+    </div>
+    ${conf.note && confLevel==='low' ? `<div class="info-box" style="margin-top:10px;">⚠ ${esc(conf.note)}</div>` : ''}
+  </div>
+
+  <!-- Stats grid -->
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-label">Stage Focus</div><div class="stat-value">${esc(data.investment_stage||'—')}</div></div>
+    <div class="stat"><div class="stat-label">Typical Check</div><div class="stat-value">${esc(data.typical_check_size||'—')}</div></div>
+    <div class="stat"><div class="stat-label">Geography</div><div class="stat-value">${esc(data.geographic_preference||'—')}</div></div>
+  </div>
+
+  <!-- Alignment score -->
+  ${score != null ? `
+  <div class="card">
+    <div class="score-section">
+      <div class="score-header">
+        <span class="score-label">Venture Alignment</span>
+        <span class="score-value" style="color:${scoreColor(score)}">${score}<span style="font-size:0.9rem;color:var(--dim)">/10</span></span>
+      </div>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill" style="width:${score*10}%;background:${scoreColor(score)}"></div>
+      </div>
+      <div class="score-rationale">${esc(data.venture_alignment_rationale||'')}</div>
+    </div>
+  </div>` : ''}
+
+  <!-- Biography & Focus -->
+  ${accordion('acc-bio','📋','Biography & Investment Focus', `
+    <div class="content-label">Biography</div>
+    <div class="content-text">${esc(data.bio_summary||'Not available')}</div>
+    <div class="content-label">Background</div>
+    <div class="content-text">${esc(data.professional_background||'Not available')}</div>
+    ${focusTags ? `<div class="content-label">Focus Areas</div><div class="tag-cloud">${focusTags}</div>` : ''}
+    <div class="content-label">Notable Investments</div>
+    ${bulletList(data.notable_investments,'→','var(--blue)')}
+    ${data.recent_themes ? `<div class="content-label">Recent Themes</div><div class="info-box">${esc(data.recent_themes)}</div>` : ''}
+    ${(data.quotes||[]).map(q=>`<blockquote>"${esc(q)}"</blockquote>`).join('')}
+  `)}
+
+  <!-- Criteria & Red Flags -->
+  ${accordion('acc-crit','🔎','Investment Criteria & Red Flags', `
+    <div class="content-label" style="color:var(--success)">What They Look For</div>
+    ${bulletList(data.what_they_look_for,'✓','var(--success)')}
+    <div class="content-label" style="color:var(--blue)">Founder Preferences</div>
+    ${bulletList(data.founder_preferences,'★','var(--blue)')}
+    ${flagTags ? `<div class="content-label" style="color:var(--danger);margin-top:14px">Red Flags</div><div class="tag-cloud">${flagTags}</div>` : ''}
+  `)}
+
+  <!-- Contact -->
+  ${accordion('acc-contact','📬','Contact Intelligence', `
+    ${contactRows ? `<ul class="bullet-list">${contactRows}</ul>` : '<p style="color:var(--dim);font-size:.88rem">No contact data available</p>'}
+    ${cc.best_approach ? `<div class="content-label">Best Approach</div><div class="info-box">${esc(cc.best_approach)}</div>` : ''}
+  `)}
+
+  <div class="divider"></div>
+
+  <!-- Pitch Strategy -->
+  <div class="result-section-title">🎯 Pitch Strategy</div>
+
+  <div class="hook-box">
+    <div class="hook-label">⚡ Opening Hook</div>
+    <div class="hook-text">"${esc(ps.headline_hook||'Not available')}"</div>
+  </div>
+
+  ${accordion('acc-align','🔗','Key Alignment Points', bulletList(ps.key_alignment_points,'◆','var(--primary)'))}
+  ${accordion('acc-talk','💬','Core Talking Points', bulletList(ps.core_talking_points,'•','var(--blue)'))}
+  ${accordion('acc-metrics','📈','Metrics to Lead With', bulletList(ps.metrics_to_lead_with,'→','var(--success)'))}
+  ${accordion('acc-q','❓','Questions to Ask Them', bulletList(ps.questions_to_ask_them,'?','var(--warning)'))}
+  ${avoidTags ? accordion('acc-avoid','🚫','Things to Avoid', `<div class="tag-cloud">${avoidTags}</div>`) : ''}
+  ${ps.follow_up_strategy ? `
+  <div class="content-label" style="margin:14px 0 6px">Follow-Up Strategy</div>
+  <div class="info-box green">${esc(ps.follow_up_strategy)}</div>` : ''}
+
+  <div class="divider"></div>
+
+  <!-- Outreach Email -->
+  <div class="result-section-title">✉️ Cold Outreach Email</div>
+  <div class="email-header"><strong>Subject:</strong> ${esc(em.subject_line||'')}</div>
+  <div class="email-body">${esc(em.body||'Not available')}</div>
+
+  ${sc.length ? `
+  <div class="divider"></div>
+  <div class="result-section-title">🔍 Suggested Research Queries</div>
+  ${bulletList(sc,'🔍','var(--blue)')}` : ''}
+
+  <!-- Downloads -->
+  <div class="divider"></div>
+  <div class="download-group">
+    <button class="btn-dl" onclick="downloadEmail()">⬇&nbsp; Download Outreach Email (.txt)</button>
+    <button class="btn-dl primary" onclick="downloadReport()">⬇&nbsp; Download Full Research Brief (.txt)</button>
+  </div>
+  `;
+
+  el('results').innerHTML = html;
+  el('results').style.display = 'block';
+  el('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ── Download helpers ── */
+let _lastData = null, _lastQuery = null;
+
+function downloadFile(filename, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type:'text/plain'}));
+  a.download = filename;
+  a.click();
+}
+
+function downloadEmail() {
+  if (!_lastData) return;
+  const em = _lastData.outreach_email || {};
+  downloadFile(`outreach_${_lastQuery||'investor'}.txt`,
+    `Subject: ${em.subject_line||''}\n\n${em.body||''}`);
+}
+
+function downloadReport() {
+  if (!_lastData) return;
+  const d = _lastData, q = _lastQuery || 'investor';
+  const lines = [
+    '='.repeat(70),
+    '  ANGEL INVESTOR RESEARCH BRIEF',
+    `  Prepared for: ${_lastVentureName||''}`,
+    '='.repeat(70),
+    '',
+    `Investor: ${d.name||''}`,
+    `Firm: ${d.firm_or_affiliation||''}`,
+    `Location: ${d.location||''}`,
+    `Stage: ${d.investment_stage||''}`,
+    `Check Size: ${d.typical_check_size||''}`,
+    `Geography: ${d.geographic_preference||''}`,
+    `Data Confidence: ${(d.data_confidence||{}).level||''} — ${(d.data_confidence||{}).note||''}`,
+    '',
+    'BIOGRAPHY', d.bio_summary||'',
+    '',
+    'BACKGROUND', d.professional_background||'',
+    '',
+    'FOCUS AREAS', (d.investment_focus||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'NOTABLE INVESTMENTS', (d.notable_investments||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'WHAT THEY LOOK FOR', (d.what_they_look_for||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'FOUNDER PREFERENCES', (d.founder_preferences||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'RED FLAGS', (d.red_flags||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'RECENT THEMES', d.recent_themes||'',
+    '',
+    '-'.repeat(70),
+    `VENTURE FIT: ${d.venture_alignment_score||'?'}/10`,
+    d.venture_alignment_rationale||'',
+    '',
+    '-'.repeat(70),
+    'PITCH STRATEGY',
+    '',
+    'Opening Hook:',
+    `  "${(d.pitch_strategy||{}).headline_hook||''}"`,
+    '',
+    'Key Alignment:', ((d.pitch_strategy||{}).key_alignment_points||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'Talking Points:', ((d.pitch_strategy||{}).core_talking_points||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'Metrics to Lead With:', ((d.pitch_strategy||{}).metrics_to_lead_with||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'Questions to Ask:', ((d.pitch_strategy||{}).questions_to_ask_them||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'Things to Avoid:', ((d.pitch_strategy||{}).things_to_avoid||[]).map(x=>`• ${x}`).join('\n'),
+    '',
+    'Follow-Up Strategy:', ((d.pitch_strategy||{}).follow_up_strategy||''),
+    '',
+    '-'.repeat(70),
+    'OUTREACH EMAIL',
+    `Subject: ${(d.outreach_email||{}).subject_line||''}`,
+    '',
+    (d.outreach_email||{}).body||'',
+    '',
+    '='.repeat(70),
+    'DISCLAIMER',
+    'Research generated by AI. Verify before outreach. Not financial advice.',
+    '='.repeat(70),
+  ];
+  downloadFile(`investor_brief_${q}.txt`, lines.join('\n'));
+}
+
+/* ── Form submit ── */
+let _lastVentureName = '';
+
+el('researchForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const investorName = el('investor_name').value.trim();
+  const ventureName  = el('venture_name').value.trim();
+  _lastVentureName   = ventureName;
+  _lastQuery = investorName.toLowerCase().replace(/[^a-z0-9]/g,'_');
+
+  /* Reset UI */
+  el('error').style.display = 'none';
+  el('results').style.display = 'none';
+  el('loading').style.display = 'block';
+  el('loadingName').textContent = investorName;
+  el('submitBtn').disabled = true;
+  startSteps();
+  el('loading').scrollIntoView({ behavior:'smooth', block:'center' });
+
+  const payload = {
+    investor_name:       investorName,
+    firm:                el('firm').value.trim(),
+    investor_notes:      el('investor_notes').value.trim(),
+    venture_name:        ventureName,
+    venture_description: el('venture_description').value.trim(),
+    sector:              el('sector').value.trim(),
+    stage:               el('stage').value,
+    mission:             el('mission').value.trim(),
+    enable_web_search:   el('enableWebSearch').checked,
+  };
+
+  try {
+    const res = await fetch('/api/research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(120000),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || `Server error (${res.status})`);
+    }
+
+    stopSteps();
+    el('loading').style.display = 'none';
+    _lastData = data;
+    renderResults(data, payload);
+
+  } catch (err) {
+    stopSteps();
+    el('loading').style.display = 'none';
+    const box = el('error');
+    box.textContent = `Research failed: ${err.message}`;
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior:'smooth', block:'center' });
+  } finally {
+    el('submitBtn').disabled = false;
+  }
+});
+
+/* ── Auto-expand first accordion after results render ── */
+const observer = new MutationObserver(() => {
+  const first = document.querySelector('#acc-bio');
+  if (first && !first.classList.contains('open')) {
+    first.classList.add('open');
+    first.previousElementSibling?.setAttribute('aria-expanded','true');
+  }
+});
+observer.observe(el('results'), { childList:true });
+</script>
+</body>
+</html>
