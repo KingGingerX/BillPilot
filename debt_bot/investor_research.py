@@ -29,7 +29,7 @@ class InvestorQuery(BaseModel):
 
 _SYSTEM_PROMPT = """You are a world-class startup advisor and investor relations expert with deep knowledge of the angel investing ecosystem. Your task is to research an angel investor and produce a comprehensive intelligence brief plus a tailored pitch strategy.
 
-Research the investor based on their name and any context provided. Draw from publicly known information: portfolio pages, interviews, Twitter/X, conference talks, published investment theses, and news coverage.
+Research the investor based on their name and any context provided. When live web research is provided below, PRIORITIZE that information over your training data — it is more current. Also draw from publicly known information: portfolio pages, interviews, Twitter/X, conference talks, published investment theses, and news coverage.
 
 Return a JSON object with EXACTLY this structure (raw JSON only — no markdown fences, no preamble):
 {
@@ -87,8 +87,12 @@ Honesty rules:
 """
 
 
-def research_investor(query: InvestorQuery) -> dict[str, Any]:
-    """Use Claude to research an investor and return a structured profile + pitch strategy dict."""
+def research_investor(query: InvestorQuery, web_context: str = "") -> dict[str, Any]:
+    """Use Claude to research an investor and return a structured profile + pitch strategy dict.
+
+    Pass web_context (output of web_search.search_investor_web) to ground Claude in
+    live, current data rather than training knowledge alone.
+    """
     try:
         import anthropic
     except ImportError as exc:
@@ -102,12 +106,21 @@ def research_investor(query: InvestorQuery) -> dict[str, Any]:
             "Set ANTHROPIC_API_KEY in your environment to use Investor Research."
         )
 
+    web_section = (
+        f"\n\n=== LIVE WEB RESEARCH (prioritize this over training data) ===\n"
+        f"{web_context[:8000]}\n"
+        f"=== END WEB RESEARCH ==="
+        if web_context.strip()
+        else "\n\n(No live web research provided — use training knowledge.)"
+    )
+
     user_message = (
         f"Research this angel investor and generate a tailored pitch strategy.\n\n"
         f"INVESTOR:\n"
         f"Name: {query.investor_name}\n"
         f"Firm/Affiliation: {query.firm_or_affiliation or 'Unknown'}\n"
-        f"Additional notes: {query.additional_investor_notes or 'None'}\n\n"
+        f"Additional notes: {query.additional_investor_notes or 'None'}"
+        f"{web_section}\n\n"
         f"MY VENTURE:\n"
         f"Name: {query.your_venture_name}\n"
         f"Description: {query.your_venture_description}\n"
