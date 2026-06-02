@@ -18,6 +18,7 @@
   ],
   "functions": {
     "api/research.py": { "maxDuration": 60 },
-    "api/status.py":   { "maxDuration": 10 }
+    "api/status.py":   { "maxDuration": 10 },
+    "api/r2r.py":      { "maxDuration": 30 }
   }
 }
