@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — AFF LAUNCHER</title>
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg-2: #111113;
+    --fg: #f1f1f3;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --card: #131316;
+    --error: #f87171;
+    --success: #4ade80;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--fg); min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  }
+  .checkout {
+    width: 100%; max-width: 460px; padding: 0 20px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px;
+  }
+  .logo { text-align: center; font-weight: 800; letter-spacing: 1px; margin-bottom: 24px; color: var(--fg); }
+  .order { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 22px; }
+  .order-row { display: flex; justify-content: space-between; font-size: 0.95rem; }
+  .order-row.total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem; }
+  .label { color: var(--muted); font-size: 0.8rem; margin-bottom: 6px; display: block; }
+  #card-element {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+  }
+  #card-errors { color: var(--error); font-size: 0.85rem; margin-top: 10px; min-height: 20px; }
+  button {
+    width: 100%; margin-top: 18px; padding: 14px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #0a0a0b;
+    font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.15s;
+  }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  button:hover:not(:disabled) { opacity: 0.92; }
+  .secure { text-align: center; margin-top: 14px; font-size: 0.8rem; color: #52525b; }
+  .spinner {
+    display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 520px) { .card { padding: 22px; } }
+</style>
+</head>
+<body>
+
+<div class="checkout">
+  <div class="card">
+    <div class="logo">AFF LAUNCHER</div>
+    <div class="order">
+      <div class="order-row"><span id="tier-name">Pro</span><span id="tier-price">$297.00</span></div>
+      <div class="order-row total"><span>Total</span><span id="total-price">$297.00</span></div>
+    </div>
+
+    <form id="payment-form">
+      <label class="label">Card Details</label>
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
+      <button id="submit-button" type="submit">
+        <span id="btn-text">Pay Now</span>
+      </button>
+    </form>
+    <p class="secure">&#x1F512; Encrypted by Stripe. We never store your card.</p>
+  </div>
+</div>
+
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  // CONFIGURATION: Replace this publishable key with your live key before deploying.
+  // Test mode key format: pk_test_...
+  // Live key format: pk_live_...
+  const STRIPE_PUBLISHABLE_KEY = "pk_test_REPLACE_ME";
+
+  const params = new URLSearchParams(window.location.search);
+  const tier = (params.get("tier") || "pro").toLowerCase();
+  const amountCents = parseInt(params.get("amount") || "29700", 10);
+  const amountDollars = (amountCents / 100).toFixed(2);
+
+  const tierNames = { starter: "Starter", pro: "Pro", agency: "Agency" };
+  document.getElementById("tier-name").textContent = tierNames[tier] || (tier.charAt(0).toUpperCase() + tier.slice(1));
+  document.getElementById("tier-price").textContent = "$" + amountDollars;
+  document.getElementById("total-price").textContent = "$" + amountDollars;
+
+  const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+  const elements = stripe.elements({
+    appearance: { theme: "night", variables: { colorPrimary: "#e5e7eb", colorBackground: "#111113", colorText: "#f1f1f3", colorDanger: "#f87171", borderRadius: "10px" } }
+  });
+  const card = elements.create("card", { style: { base: { color: "#f1f1f3", fontSize: "16px", "::placeholder": { color: "#71717a" } } } });
+  card.mount("#card-element");
+
+  const form = document.getElementById("payment-form");
+  const errorEl = document.getElementById("card-errors");
+  const submitBtn = document.getElementById("submit-button");
+  const btnText = document.getElementById("btn-text");
+
+  card.on("change", (event) => {
+    errorEl.textContent = event.error ? event.error.message : "";
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    btnText.innerHTML = '<span class="spinner"></span>Processing...';
+
+    try {
+      const res = await fetch("/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || "Unable to initialize checkout.");
+      window.location.href = data.url;
+    } catch (err) {
+      errorEl.textContent = err.message || "Payment failed. Please try again.";
+      submitBtn.disabled = false;
+      btnText.textContent = "Pay Now";
+    }
+  });
+</script>
+
+</body>
+</html>
