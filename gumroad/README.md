@@ -14,6 +14,8 @@ Static professional storefront page for the TGB Global Gumroad collection.
 - `testimonials.js` - renders verified buyer quotes from JSON
 - `data/testimonials.json` - testimonial data source
 - `TESTIMONIALS.md` - copy-paste testimonial format
+- `GUMROAD_PROFILE_SETUP.md` - native Gumroad section copy and setup order
+- `GUMROAD_LIMITS.md` - what can and cannot be automated on Gumroad
 - `netlify/functions/events.js` - optional Netlify event endpoint
 - `sitemap.xml` and `robots.txt` - crawler metadata
 - `scripts/validate-static.js` - zero-dependency validation and build script
