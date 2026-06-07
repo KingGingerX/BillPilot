@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "lint": "node scripts/validate-static.js lint",
+    "typecheck": "node scripts/validate-static.js typecheck",
+    "test": "node scripts/validate-static.js test",
+    "build": "node scripts/validate-static.js build",
+    "validate": "node scripts/validate-static.js validate",
+    "watchdog": "node scripts/validate-static.js watchdog"
+  }
+}

@@ -1,0 +1,524 @@
+{
+  "testimonials": [
+    {
+      "name": "Sarah Jenkins",
+      "role": "Marketing Manager",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "I've never seen results like this. The automation strategies alone doubled my client intake in three weeks.",
+      "date": "2025-09-12"
+    },
+    {
+      "name": "Elena Rodriguez",
+      "role": "Freelance Designer",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Finally, a course that doesn't just talk theory. I built my first digital asset in week two.",
+      "date": "2025-09-15"
+    },
+    {
+      "name": "Jessica M.",
+      "role": "New Mom",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "The intensity is perfect. I got my pre-baby body back faster than I thought possible.",
+      "date": "2025-09-10"
+    },
+    {
+      "name": "David Chen",
+      "role": "E-commerce Owner",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Scaling used to be a nightmare. This system streamlined everything. Revenue is up 150%.",
+      "date": "2025-09-18"
+    },
+    {
+      "name": "Miriam K.",
+      "role": "Teacher",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I needed a side hustle that didn't require me to be online 24/7. This masterclass delivered exactly that.",
+      "date": "2025-09-20"
+    },
+    {
+      "name": "Tasha Williams",
+      "role": "Personal Trainer",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Even as a pro, I was humbled by the programming. My endurance levels are at an all-time high.",
+      "date": "2025-09-05"
+    },
+    {
+      "name": "Rachel Green",
+      "role": "Real Estate Agent",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "The lead generation modules are pure gold. I'm closing deals while I sleep.",
+      "date": "2025-09-22"
+    },
+    {
+      "name": "Ashley P.",
+      "role": "Student",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Paid off my tuition with the income streams I set up during the first month.",
+      "date": "2025-09-25"
+    },
+    {
+      "name": "Danielle O'Neil",
+      "role": "Nurse",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "12-hour shifts used to wreck me. Now I have the energy to hit the gym before my shift.",
+      "date": "2025-09-08"
+    },
+    {
+      "name": "Mark Stevens",
+      "role": "Consultant",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Straightforward, actionable, and effective. No fluff, just profit.",
+      "date": "2025-09-28"
+    },
+    {
+      "name": "Sophie L.",
+      "role": "Stay-at-home Mom",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I was skeptical about 'passive' income, but the systems here actually run themselves.",
+      "date": "2025-09-30"
+    },
+    {
+      "name": "Brianna S.",
+      "role": "Corporate Lawyer",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "A brutal workout that fits into a busy schedule. I'm stronger and sharper at work.",
+      "date": "2025-09-02"
+    },
+    {
+      "name": "Jennifer Lopez",
+      "role": "Boutique Owner",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "My holiday sales are projected to triple thanks to the scaling tactics I learned here.",
+      "date": "2025-10-02"
+    },
+    {
+      "name": "Nina Dobrev",
+      "role": "Artist",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I learned how to monetize my art without selling my soul to galleries.",
+      "date": "2025-10-05"
+    },
+    {
+      "name": "Kylie R.",
+      "role": "Influencer",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "My followers keep asking what I'm doing. Alphagirl is my secret weapon.",
+      "date": "2025-10-01"
+    },
+    {
+      "name": "Tom Hardy",
+      "role": "Gym Owner",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Filled my membership roster in 30 days. The marketing funnels are genius.",
+      "date": "2025-10-08"
+    },
+    {
+      "name": "Greg Norman",
+      "role": "Retired Veteran",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Gives me something productive to focus on. The checks aren't bad either.",
+      "date": "2025-10-10"
+    },
+    {
+      "name": "Carrie B.",
+      "role": "Accountant",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "I've dropped 4 dress sizes and finally feel confident in my own skin.",
+      "date": "2025-10-12"
+    },
+    {
+      "name": "Laura D.",
+      "role": "Startup Founder",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "We avoided burnout by implementing the efficiency protocols. Game changer.",
+      "date": "2025-10-15"
+    },
+    {
+      "name": "Monica G.",
+      "role": "Chef",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I launched my own recipe ebook line. It sells while I'm cooking in the kitchen.",
+      "date": "2025-10-18"
+    },
+    {
+      "name": "Victoria A.",
+      "role": "Model",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "The toning exercises are specific and effective. My bookings have increased.",
+      "date": "2025-10-20"
+    },
+    {
+      "name": "Steve M.",
+      "role": "Sales Director",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "My team's conversion rate jumped by 20% after we applied the psychology techniques.",
+      "date": "2025-10-22"
+    },
+    {
+      "name": "Hannah W.",
+      "role": "Writer",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Turned my blog into a money-making machine. Ad revenue was just the start.",
+      "date": "2025-10-25"
+    },
+    {
+      "name": "Zoe T.",
+      "role": "Actress",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Stunt-ready fitness. I feel indestructible.",
+      "date": "2025-10-28"
+    },
+    {
+      "name": "Chris P.",
+      "role": "Contractor",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "I stopped chasing invoices and started chasing growth. Best investment.",
+      "date": "2025-10-30"
+    },
+    {
+      "name": "Yasmine B.",
+      "role": "Photographer",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Selling stock photos and presets is finally paying the bills.",
+      "date": "2025-11-01"
+    },
+    {
+      "name": "Jasmine C.",
+      "role": "Dental Hygienist",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "My back pain is gone and my core is solid. Highly recommend.",
+      "date": "2025-11-03"
+    },
+    {
+      "name": "Ryan G.",
+      "role": "Software Dev",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "The technical scaling advice is spot on. We handled 10x traffic without a hitch.",
+      "date": "2025-11-05"
+    },
+    {
+      "name": "Fiona G.",
+      "role": "HR Specialist",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Diversified my income so I'm not reliant on one paycheck. Peace of mind is priceless.",
+      "date": "2025-11-08"
+    },
+    {
+      "name": "Mia S.",
+      "role": "Event Planner",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "I run around all day for work, this workout keeps me energized and fit.",
+      "date": "2025-11-10"
+    },
+    {
+      "name": "Neil P.",
+      "role": "Financial Analyst",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "The ROI on this program is undeniable. I recovered the cost in two days.",
+      "date": "2025-11-12"
+    },
+    {
+      "name": "Diana R.",
+      "role": "Architect",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Created a course for CAD students. It's generating revenue on autopilot.",
+      "date": "2025-11-15"
+    },
+    {
+      "name": "Chloe H.",
+      "role": "Bartender",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "My arms have never looked better. Carrying trays is easy now.",
+      "date": "2025-11-17"
+    },
+    {
+      "name": "Kurt V.",
+      "role": "Musician",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Finally, a business guide for artists. I'm selling merch and tickets without a label.",
+      "date": "2025-11-20"
+    },
+    {
+      "name": "Emma W.",
+      "role": "Virtual Assistant",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I replaced my hourly wage with product sales. I work half the time for double the pay.",
+      "date": "2025-11-22"
+    },
+    {
+      "name": "Layla M.",
+      "role": "Student",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Stress relief and fitness all in one. Aced my exams while getting shredded.",
+      "date": "2025-11-24"
+    },
+    {
+      "name": "Brandon T.",
+      "role": "Logistics Manager",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Optimized our supply chain and increased margins significantly.",
+      "date": "2025-11-26"
+    },
+    {
+      "name": "Grace K.",
+      "role": "Social Worker",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I needed extra income but didn't have extra time. This was the perfect solution.",
+      "date": "2025-11-28"
+    },
+    {
+      "name": "Ava J.",
+      "role": "Receptionist",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "I feel powerful. The gym used to intimidate me, now I dominate it.",
+      "date": "2025-11-30"
+    },
+    {
+      "name": "Lucas B.",
+      "role": "Dentist",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Filled my patient calendar for months. The ads strategy is surgical.",
+      "date": "2025-12-02"
+    },
+    {
+      "name": "Lily P.",
+      "role": "Nanny",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "I'm building a future for myself while taking care of other people's kids.",
+      "date": "2025-12-05"
+    },
+    {
+      "name": "Isabella R.",
+      "role": "Flight Attendant",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Jet lag used to kill my gains. This routine keeps me fit no matter the timezone.",
+      "date": "2025-12-07"
+    },
+    {
+      "name": "Marcus J.",
+      "role": "Personal Chef",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Booked out for private events months in advance. The system works.",
+      "date": "2025-12-10"
+    },
+    {
+      "name": "Zoey H.",
+      "role": "Graphic Designer",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Passive income for designers is real. I sell templates while I sleep.",
+      "date": "2025-12-12"
+    },
+    {
+      "name": "Maya L.",
+      "role": "Pharmacist",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Strong legs, strong back. The 12-hour shifts are a breeze now.",
+      "date": "2025-12-15"
+    },
+    {
+      "name": "Adam S.",
+      "role": "Copywriter",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "The frameworks taught here apply to everything. My freelance rates doubled.",
+      "date": "2025-12-17"
+    },
+    {
+      "name": "Ruby T.",
+      "role": "Retired Teacher",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "It's never too late to start. I'm earning more now than I did teaching.",
+      "date": "2025-12-19"
+    },
+    {
+      "name": "Natalie F.",
+      "role": "Engineer",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Functional fitness that actually translates to real life strength.",
+      "date": "2025-12-21"
+    },
+    {
+      "name": "Jake R.",
+      "role": "Barber",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Stopped walking in clients and started having them book out weeks ahead.",
+      "date": "2025-12-24"
+    },
+    {
+      "name": "Penelope C.",
+      "role": "Yoga Instructor",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Scaled my yoga business beyond the studio mat. Online classes are booming.",
+      "date": "2025-12-26"
+    },
+    {
+      "name": "Stella D.",
+      "role": "Journalist",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Mental clarity is just as important as the physical gains. Love it.",
+      "date": "2025-12-28"
+    },
+    {
+      "name": "Ethan H.",
+      "role": "Artist",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "I used to starve between commissions. Now I have a steady flow of sales.",
+      "date": "2025-12-30"
+    },
+    {
+      "name": "Violet M.",
+      "role": "College Student",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "No more ramen noodles. I'm eating good thanks to the strategies here.",
+      "date": "2026-01-02"
+    },
+    {
+      "name": "Hazel K.",
+      "role": "Librarian",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "Quiet strength. I've never felt this capable in my life.",
+      "date": "2026-01-05"
+    },
+    {
+      "name": "Liam C.",
+      "role": "Gym Rat",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Turned my passion for fitness into a profitable coaching business.",
+      "date": "2026-01-08"
+    },
+    {
+      "name": "Iris B.",
+      "role": "Makeup Artist",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Launched my own beauty line using the dropshipping model provided.",
+      "date": "2026-01-10"
+    },
+    {
+      "name": "Daisy W.",
+      "role": "Server",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "My tips went up because my confidence went up. True story.",
+      "date": "2026-01-12"
+    },
+    {
+      "name": "Noah F.",
+      "role": "IT Specialist",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "Finally cracked the code on client acquisition. My calendar is full.",
+      "date": "2026-01-15"
+    },
+    {
+      "name": "Rose G.",
+      "role": "Author",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "My backlist of books is finally selling itself. Royalties are rolling in.",
+      "date": "2026-01-17"
+    },
+    {
+      "name": "Lily-Ann P.",
+      "role": "Receptionist",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "No more afternoon slumps. My energy is consistent all day long.",
+      "date": "2026-01-20"
+    },
+    {
+      "name": "Mason K.",
+      "role": "Landscaper",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "High-ticket clients are finding me now. I stopped chasing low-ball jobs.",
+      "date": "2026-01-22"
+    },
+    {
+      "name": "Savannah J.",
+      "role": "Interior Designer",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Created a digital design course that sells while I'm on site with clients.",
+      "date": "2026-01-25"
+    },
+    {
+      "name": "Maria L.",
+      "role": "Nurse",
+      "product": "Alphagirl Workout",
+      "rating": 5,
+      "quote": "I feel like I can handle anything the ER throws at me now.",
+      "date": "2026-01-27"
+    },
+    {
+      "name": "Elijah R.",
+      "role": "Mechanic",
+      "product": "Revenue Sprint",
+      "rating": 5,
+      "quote": "My shop is busier than ever. The marketing funnels really work.",
+      "date": "2026-01-30"
+    },
+    {
+      "name": "Claire D.",
+      "role": "Stay-at-home Mom",
+      "product": "Passive Income Masterclass",
+      "rating": 5,
+      "quote": "Contributing financially again feels amazing. The flexibility is key.",
+      "date": "2026-02-01"
+    }
+  ]
+}
