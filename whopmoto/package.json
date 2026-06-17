@@ -1,0 +1,22 @@
+{
+  "name": "cashmoto",
+  "version": "1.0.0",
+  "description": "Whop credential manager and project auto-provisioner",
+  "main": "bin/cashmoto.js",
+  "bin": {
+    "cashmoto": "./bin/cashmoto.js"
+  },
+  "scripts": {
+    "start": "node bin/whopmoto.js"
+  },
+  "dependencies": {
+    "@whop-sdk/api": "^1.1.1",
+    "@whop/sdk": "^0.0.40",
+    "chalk": "^4.1.2",
+    "commander": "^12.0.0",
+    "inquirer": "^8.2.6"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
