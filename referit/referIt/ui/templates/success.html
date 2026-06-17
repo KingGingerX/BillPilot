@@ -3,52 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Successful — ReferIt</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<title>Payment Confirmed — ReferIt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --accent: #39FF14; --accent-dim: #2bcc0f; --dark: #000; --card: #0a0a0a; --border: #1e1e1e; }
-  body { background: var(--dark); color: #e1e4e8; font-family: 'Segoe UI', system-ui, sans-serif;
-         display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-          padding: 48px 40px; max-width: 520px; width: 100%; text-align: center; }
-  .logo-img { height: 80px; width: auto; margin-bottom: 24px; }
-  .checkmark { width: 72px; height: 72px; background: #39FF1415; border: 1px solid #39FF1440;
-               border-radius: 50%; display: flex; align-items: center; justify-content: center;
-               margin: 0 auto 24px; font-size: 32px; box-shadow: 0 0 20px #39FF1420; }
-  h1 { font-size: 1.8rem; font-weight: 800; color: #d4d4d4; margin-bottom: 8px; }
-  p { color: #6e6e6e; line-height: 1.7; }
-  .tier-badge { display: inline-block; background: var(--accent); color: #000; font-size: .75rem;
-                font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 14px;
-                border-radius: 20px; margin-bottom: 24px; }
-  .action-btn { display: block; background: var(--accent); color: #000; font-weight: 700;
-                padding: 14px; border-radius: 8px; text-decoration: none; font-size: 1rem;
-                margin-top: 24px; letter-spacing: .3px; }
-  .action-btn:hover { background: var(--accent-dim); color: #000; }
-  .secondary-link { display: block; margin-top: 14px; color: var(--accent); font-size: .9rem;
-                    text-decoration: none; opacity: .7; }
-  .secondary-link:hover { opacity: 1; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #000; color: #e8e8e8;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-font-smoothing: antialiased;
+  padding: 24px;
+}
+
+.card {
+  background: #080808;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 56px 48px;
+  max-width: 520px; width: 100%;
+  text-align: center;
+}
+
+.logo-img { height: 64px; width: auto; margin-bottom: 36px; opacity: .9; }
+
+.check-ring {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: rgba(57,255,20,.07);
+  border: 1px solid rgba(57,255,20,.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+  font-size: 28px;
+  box-shadow: 0 0 32px rgba(57,255,20,.08);
+}
+
+.tier-tag {
+  display: inline-block; background: rgba(57,255,20,.1);
+  border: 1px solid rgba(57,255,20,.2);
+  color: #39FF14; font-size: .68rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 14px; border-radius: 20px; margin-bottom: 20px;
+}
+.tier-tag.war { background: rgba(248,81,73,.1); border-color: rgba(248,81,73,.2); color: #f85149; }
+
+h1 {
+  font-size: 1.9rem; font-weight: 800; color: #fff;
+  letter-spacing: -.03em; margin-bottom: 16px; line-height: 1.2;
+}
+
+p { font-size: .9rem; color: #555; line-height: 1.8; margin-bottom: 10px; }
+p strong { color: #c8c8c8; font-weight: 600; }
+
+.btn {
+  display: block; width: 100%; margin-top: 32px;
+  background: #39FF14; color: #000; font-weight: 700;
+  font-size: .95rem; padding: 14px; border-radius: 8px;
+  text-decoration: none; letter-spacing: -.01em;
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .88; color: #000; }
+.back-link {
+  display: block; margin-top: 16px; font-size: .83rem;
+  color: #333; text-decoration: none; transition: color .15s;
+}
+.back-link:hover { color: #555; }
 </style>
 </head>
 <body>
 <div class="card">
   <img src="/static/logo.jpeg" alt="ReferIt" class="logo-img">
-  <div class="checkmark">✅</div>
+
+  <div class="check-ring">✓</div>
+
   {% if tier == 'dominance' or tier == 'dominance_shield' %}
-  <div class="tier-badge">Sector 7 — {{ tier|replace('_', ' ')|title }}</div>
+  <div class="tier-tag war">Sector 7 — {{ tier|replace('_', ' ')|title }}</div>
   <h1>You Own Your Market.</h1>
-  <p>Your Dominance campaign is being activated. Your dedicated strategist will contact you within <strong style="color:#d4d4d4;">24 hours</strong> to begin your onboarding and lock in your territory.</p>
-  <p>Check your email at <strong style="color:#d4d4d4;">{{ email or 'the address you used at checkout' }}</strong> for your onboarding details.</p>
+  <p>Your Dominance campaign is being activated. Your dedicated strategist will reach out within <strong>24 hours</strong> to begin onboarding and lock in your territory.</p>
+  <p>Check your email at <strong>{{ email or 'the address you used at checkout' }}</strong> for onboarding details.</p>
   {% elif tier == 'white_glove' %}
-  <div class="tier-badge">White Glove</div>
+  <div class="tier-tag">White Glove</div>
   <h1>You're in Good Hands.</h1>
-  <p>Your White Glove package is confirmed. Check your email at <strong style="color:#d4d4d4;">{{ email or 'the address you used at checkout' }}</strong> for your license key, download link, and instructions to book your onboarding call.</p>
+  <p>Your White Glove package is confirmed. Check your email at <strong>{{ email or 'the address you used at checkout' }}</strong> for your license key, download link, and booking instructions.</p>
   {% else %}
-  <div class="tier-badge">{{ tier|replace('_', ' ')|title }}</div>
+  <div class="tier-tag">{{ tier|replace('_', ' ')|title }}</div>
   <h1>You're In.</h1>
-  <p>Your purchase is confirmed. Check your email at <strong style="color:#d4d4d4;">{{ email or 'the address you used at checkout' }}</strong> for your license key and download link.</p>
+  <p>Purchase confirmed. Check your email at <strong>{{ email or 'the address you used at checkout' }}</strong> for your license key and download link.</p>
   {% endif %}
-  <a href="/login" class="action-btn">Go to Dashboard Login &rarr;</a>
-  <a href="/" class="secondary-link">Back to homepage</a>
+
+  <a href="/login" class="btn">Go to Dashboard →</a>
+  <a href="/" class="back-link">Back to homepage</a>
 </div>
 </body>
 </html>

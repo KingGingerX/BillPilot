@@ -3,660 +3,787 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReferIt — Control Panel</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<title>ReferIt — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #39FF14;
-    --accent-dim: #2bcc0f;
-    --dark: #000000;
-    --card: #0a0a0a;
-    --card2: #0d0d0d;
-    --border: #1a1a1a;
-    --chrome: #d4d4d4;
-    --chrome-dim: #7a7a7a;
-  }
-  body { background: var(--dark); color: #e1e4e8; font-family: 'Segoe UI', system-ui, sans-serif; }
-  .navbar { background: #050505 !important; border-bottom: 1px solid var(--border); }
-  .logo-img { height: 42px; width: auto; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
-  .card-header { background: var(--card2); border-bottom: 1px solid var(--border); font-weight: 600;
-                 color: var(--chrome); font-size: .9rem; }
-  .stat-card { transition: transform .15s; }
-  .stat-card:hover { transform: translateY(-2px); }
-  .stat-number { font-size: 2rem; font-weight: 700; }
-  .stat-accent { color: var(--accent); }
-  .stat-chrome { color: var(--chrome); }
-  .badge-running { background: var(--accent) !important; color: #000 !important; }
-  .badge-idle { background: #1a1a1a !important; color: var(--chrome-dim) !important; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-  .dot-green { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-  .dot-red { background: #f85149; }
-  .dot-yellow { background: #d29922; }
-  .log-box { background: #030303; border: 1px solid var(--border); border-radius: 6px;
-             font-family: 'Courier New', monospace; font-size: .78rem; height: 280px;
-             overflow-y: auto; padding: 12px; color: var(--chrome-dim); }
-  .log-box .log-info  { color: #555; }
-  .log-box .log-error { color: #f85149; }
-  .log-box .log-warn  { color: #d29922; }
-  .log-box .log-camp  { color: var(--accent); }
-  .log-box .log-bot   { color: #a8f5a0; }
-  .form-control, .form-select { background: #050505; border-color: var(--border); color: #e1e4e8; }
-  .form-control:focus, .form-select:focus { background: #050505; border-color: var(--accent);
-                                            color: #e1e4e8; box-shadow: 0 0 0 3px rgba(57,255,20,.1); }
-  .form-control::placeholder { color: #333; }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
-  .btn-primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); color: #000; }
-  .btn-outline-primary { color: var(--accent); border-color: var(--accent); }
-  .btn-outline-primary:hover { background: var(--accent); color: #000; }
-  .btn-danger { background: #da3633; border-color: #da3633; }
-  .btn-outline-secondary { color: var(--chrome-dim); border-color: var(--border); }
-  .btn-outline-secondary:hover { background: var(--card2); color: var(--chrome); border-color: #333; }
-  .table { color: #e1e4e8; }
-  .table th { border-color: var(--border); color: var(--chrome-dim); font-size: .78rem; text-transform: uppercase; }
-  .table td { border-color: #111; vertical-align: middle; font-size: .875rem; }
-  .table-hover tbody tr:hover { background: #0d0d0d; --bs-table-accent-bg: #0d0d0d; }
-  .nav-tabs { border-bottom: 1px solid var(--border); }
-  .nav-tabs .nav-link { color: var(--chrome-dim); border: none; padding: .5rem 1rem; background: transparent; }
-  .nav-tabs .nav-link.active { color: var(--accent); background: transparent;
-                                border-bottom: 2px solid var(--accent); }
-  .nav-tabs .nav-link:hover { color: var(--chrome); }
-  .proxy-badge { font-size: .72rem; padding: 2px 8px; border-radius: 10px; background: #1a1a1a;
-                 color: var(--chrome-dim); }
-  .pulse { animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  textarea.form-control { resize: vertical; }
-  .tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: #050505;
-               border: 1px solid var(--border); border-radius: 6px; min-height: 42px; cursor: text; }
-  .tag { background: #39FF1420; border: 1px solid #39FF1440; color: var(--accent);
-         padding: 2px 10px; border-radius: 12px; font-size: .8rem;
-         display: flex; align-items: center; gap: 4px; }
-  .tag .remove { cursor: pointer; opacity: .6; }
-  .tag .remove:hover { opacity: 1; }
-  #tagInput { border: none; background: transparent; color: #e1e4e8; outline: none;
-              flex: 1; min-width: 80px; font-size: .875rem; }
-  .section-title { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px;
-                   color: #444; margin-bottom: 4px; display: block; }
-  .form-label { color: var(--chrome-dim); font-size: .85rem; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #000;
+  --s1:       #080808;
+  --s2:       #0d0d0d;
+  --s3:       #111;
+  --b1:       #1a1a1a;
+  --b2:       #222;
+  --text:     #e8e8e8;
+  --t2:       #777;
+  --t3:       #333;
+  --green:    #39FF14;
+  --green-bg: rgba(57,255,20,.06);
+  --green-br: rgba(57,255,20,.2);
+  --red:      #f85149;
+  --yellow:   #d29922;
+}
+
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(0,0,0,.9); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--b1);
+  height: 56px; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-logo { height: 36px; width: auto; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+/* Status pill */
+.status-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: .75rem; font-weight: 500; color: var(--t2);
+}
+.dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-green { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.dot-grey  { background: var(--t3); }
+.dot-yellow { background: var(--yellow); }
+.dot-red   { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.pulse { animation: pulse 2s infinite; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 7px; font-size: .8rem;
+  font-weight: 600; cursor: pointer; border: none;
+  font-family: 'Inter', sans-serif;
+  transition: opacity .15s, background .15s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-green  { background: var(--green); color: #000; }
+.btn-green:hover { opacity: .88; }
+.btn-outline { background: transparent; border: 1px solid var(--b2); color: var(--t2); }
+.btn-outline:hover { border-color: var(--b2); color: var(--text); background: var(--s1); }
+.btn-ghost  { background: transparent; color: var(--t2); border: none; }
+.btn-ghost:hover { color: var(--text); }
+.btn-danger { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.2); color: var(--red); }
+.btn-danger:hover { background: rgba(248,81,73,.18); }
+
+/* ── LAYOUT ─────────────────────────────────────────── */
+.layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+/* Sidebar tabs */
+.sidebar {
+  width: 200px; flex-shrink: 0;
+  background: var(--s1); border-right: 1px solid var(--b1);
+  padding: 16px 12px; overflow-y: auto;
+}
+.sidebar-label {
+  font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--t3); padding: 0 8px; margin-bottom: 6px; margin-top: 20px;
+}
+.sidebar-label:first-child { margin-top: 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 7px;
+  font-size: .82rem; font-weight: 500; color: var(--t2);
+  cursor: pointer; transition: all .15s; margin-bottom: 2px;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--s2); color: var(--text); }
+.nav-item.active { background: var(--s2); color: var(--text); }
+.nav-item .icon { font-size: .95rem; width: 18px; text-align: center; flex-shrink: 0; }
+
+/* Main content */
+.main { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* ── STAT CARDS ─────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px; margin-bottom: 24px;
+}
+@media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px)  { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+.stat {
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: 10px; padding: 18px 16px;
+}
+.stat-val {
+  font-size: 1.75rem; font-weight: 800; color: var(--text);
+  letter-spacing: -.03em; line-height: 1;
+}
+.stat-val.green { color: var(--green); }
+.stat-key {
+  font-size: .68rem; font-weight: 500; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--t3); margin-top: 6px;
+}
+
+/* ── CARDS ──────────────────────────────────────────── */
+.card {
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: 10px; overflow: hidden;
+}
+.card + .card { margin-top: 16px; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--b1);
+  font-size: .82rem; font-weight: 600; color: var(--text);
+}
+.card-head .title { display: flex; align-items: center; gap: 8px; }
+.card-body { padding: 18px; }
+.card-body-flush { padding: 0; }
+
+/* ── TABLES ─────────────────────────────────────────── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--t3); padding: 10px 16px; border-bottom: 1px solid var(--b1); text-align: left;
+}
+.tbl td {
+  padding: 12px 16px; font-size: .82rem; color: var(--t2);
+  border-bottom: 1px solid rgba(26,26,26,.6);
+  vertical-align: middle;
+}
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: rgba(255,255,255,.015); }
+.tbl td.strong { color: var(--text); font-weight: 500; }
+
+/* ── FORM ELEMENTS ──────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: .72rem; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--t3); margin-bottom: 7px;
+}
+.form-control {
+  width: 100%; background: var(--s2); border: 1px solid var(--b1);
+  color: var(--text); border-radius: 7px; padding: 9px 12px;
+  font-size: .85rem; font-family: 'Inter', sans-serif; outline: none;
+  transition: border-color .15s;
+}
+.form-control:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(57,255,20,.06); }
+.form-control::placeholder { color: var(--t3); }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 70px; }
+
+/* row layout for forms */
+.row { display: grid; gap: 16px; }
+.row-2 { grid-template-columns: 1fr 1fr; }
+.row-3 { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 640px) { .row-2, .row-3 { grid-template-columns: 1fr; } }
+
+/* ── TAG INPUT ──────────────────────────────────────── */
+.tag-box {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: 7px; padding: 7px 10px; min-height: 40px; cursor: text;
+}
+.tag-box:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(57,255,20,.06); }
+.tag {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(57,255,20,.08); border: 1px solid rgba(57,255,20,.18);
+  color: var(--green); border-radius: 5px; padding: 2px 8px;
+  font-size: .75rem; font-weight: 500;
+}
+.tag .rm { cursor: pointer; opacity: .5; font-size: .85rem; }
+.tag .rm:hover { opacity: 1; }
+#tagInput {
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'Inter', sans-serif;
+  font-size: .85rem; flex: 1; min-width: 80px;
+}
+
+/* ── LOG BOX ────────────────────────────────────────── */
+.logbox {
+  background: #030303; font-family: 'Courier New', monospace;
+  font-size: .75rem; line-height: 1.7; padding: 14px;
+  overflow-y: auto; height: 280px; color: var(--t2);
+}
+.log-err  { color: var(--red); }
+.log-warn { color: var(--yellow); }
+.log-camp { color: #7dd3fc; }
+.log-bot  { color: var(--green); }
+.log-info { color: var(--t3); }
+
+/* ── BADGES ─────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+  padding: 3px 8px; border-radius: 5px; text-transform: uppercase;
+}
+.badge-green { background: rgba(57,255,20,.1); border: 1px solid rgba(57,255,20,.2); color: var(--green); }
+.badge-red   { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.2); color: var(--red); }
+.badge-grey  { background: var(--s2); border: 1px solid var(--b1); color: var(--t2); }
+.badge-yellow { background: rgba(210,153,34,.1); border: 1px solid rgba(210,153,34,.25); color: var(--yellow); }
+
+/* ── STATUS SECTION ─────────────────────────────────── */
+.status-grid { display: grid; gap: 12px; }
+.status-row {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 14px 0; border-bottom: 1px solid var(--b1);
+}
+.status-row:last-child { border-bottom: none; }
+.status-row .lbl { font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+                   text-transform: uppercase; color: var(--t3); }
+.status-row .val { font-size: .875rem; color: var(--t2); }
+
+/* ── TWO-COL LAYOUT ─────────────────────────────────── */
+.split { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+/* ── SAVE MSG ────────────────────────────────────────── */
+.save-msg { font-size: .8rem; margin-left: 12px; }
+
+/* ── PROXY PROVIDER BADGE ────────────────────────────── */
+.provider-tag {
+  font-size: .68rem; font-weight: 600; letter-spacing: .05em;
+  background: var(--s2); border: 1px solid var(--b1);
+  color: var(--t2); padding: 2px 8px; border-radius: 5px;
+}
+
+/* scrollbars */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
 </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-dark px-4 py-2">
-  <a href="/"><img src="/static/logo.jpeg" alt="ReferIt" class="logo-img"></a>
-  <div class="d-flex align-items-center gap-3">
-    <span id="statusBadge" class="badge badge-idle px-3 py-2">Loading...</span>
-    <button class="btn btn-sm btn-outline-primary" onclick="triggerNow()">
-      <i class="bi bi-play-fill me-1"></i>Run Now
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="/"><img src="/static/logo.jpeg" alt="ReferIt" class="topbar-logo"></a>
+  <div class="topbar-right">
+    <div class="status-pill" id="statusPill">
+      <span class="dot dot-grey" id="statusDot"></span>
+      <span id="statusText">Loading</span>
+    </div>
+    <button class="btn btn-green" onclick="triggerNow(this)">▶ Run Now</button>
+    <a href="/logout" class="btn btn-outline">Sign out</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-label">Overview</div>
+    <button class="nav-item active" onclick="showPanel('dashboard', this)">
+      <span class="icon">◈</span> Dashboard
     </button>
-    <a href="/logout" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-box-arrow-right me-1"></i>Logout
-    </a>
-  </div>
-</nav>
+    <button class="nav-item" onclick="showPanel('history', this)">
+      <span class="icon">≡</span> Comments
+    </button>
 
-<div class="container-fluid px-4 py-3">
+    <div class="sidebar-label">Setup</div>
+    <button class="nav-item" onclick="showPanel('config', this)">
+      <span class="icon">⚙</span> Configuration
+    </button>
+    <button class="nav-item" onclick="showPanel('proxies', this)">
+      <span class="icon">◎</span> Proxies
+    </button>
 
-  <!-- Stats Row -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-accent" id="statTotal">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">Total Comments</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-accent" id="statToday">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">Today</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-chrome" id="statWeek">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">This Week</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-accent" id="statRate">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">Success Rate</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-chrome" id="statProxies">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">Proxies Active</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
-      <div class="card stat-card p-3 text-center">
-        <div class="stat-number stat-chrome" id="statCampaigns">—</div>
-        <div class="stat-label" style="font-size:.8rem;color:#444;text-transform:uppercase;letter-spacing:.5px;">Campaigns Run</div>
-      </div>
-    </div>
-  </div>
+    <div class="sidebar-label">System</div>
+    <button class="nav-item" onclick="showPanel('logs', this)">
+      <span class="icon">⌨</span> Logs
+    </button>
+  </nav>
 
-  <!-- Main Content Tabs -->
-  <ul class="nav nav-tabs mb-3" id="mainTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabDashboard">Dashboard</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabConfig">Configuration</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabProxies">Proxies</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabLogs">Live Logs</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabHistory">Comment History</a></li>
-  </ul>
+  <!-- MAIN -->
+  <main class="main">
 
-  <div class="tab-content">
+    <!-- ── DASHBOARD PANEL ──────────────────────────── -->
+    <div id="panel-dashboard">
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val green" id="sTotal">—</div>
+          <div class="stat-key">Total Comments</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val green" id="sToday">—</div>
+          <div class="stat-key">Today</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="sWeek">—</div>
+          <div class="stat-key">This Week</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="sRate">—</div>
+          <div class="stat-key">Success Rate</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="sProxies">—</div>
+          <div class="stat-key">Proxies Active</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="sCampaigns">—</div>
+          <div class="stat-key">Campaigns Run</div>
+        </div>
+      </div>
 
-    <!-- ── Dashboard Tab ────────────────────────────────────── -->
-    <div class="tab-pane fade show active" id="tabDashboard">
-      <div class="row g-3">
-        <!-- Campaign History -->
-        <div class="col-12 col-xl-8">
+      <div class="split">
+        <!-- Campaign table -->
+        <div>
           <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-clock-history me-2"></i>Recent Campaigns</span>
-              <button class="btn btn-sm btn-outline-secondary" onclick="loadCampaigns()">
-                <i class="bi bi-arrow-clockwise"></i>
-              </button>
+            <div class="card-head">
+              <span class="title">Recent Campaigns</span>
+              <button class="btn btn-ghost" onclick="loadCampaigns()" style="font-size:.75rem;padding:4px 8px">↻ Refresh</button>
             </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                  <thead>
-                    <tr>
-                      <th>Time</th><th>Company</th><th>Keywords</th>
-                      <th>Found</th><th>Posted</th><th>Failed</th><th>Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody id="campaignTable">
-                    <tr><td colspan="7" class="text-center py-4" style="color:#333">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
+            <div class="card-body-flush">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Time</th><th>Company</th><th>Keywords</th>
+                    <th>Found</th><th>Posted</th><th>Failed</th><th>Rate</th>
+                  </tr>
+                </thead>
+                <tbody id="campaignTable">
+                  <tr><td colspan="7" style="text-align:center;color:var(--t3);padding:32px">Loading...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        <!-- Status Panel -->
-        <div class="col-12 col-xl-4">
-          <div class="card mb-3">
-            <div class="card-header"><i class="bi bi-activity me-2"></i>Bot Status</div>
+        <!-- Status panel -->
+        <div>
+          <div class="card">
+            <div class="card-head"><span class="title">Bot Status</span></div>
             <div class="card-body">
-              <div class="mb-2">
-                <span class="section-title">State</span>
-                <span id="botState" class="fs-5"></span>
+              <div class="status-row">
+                <div class="lbl">State</div>
+                <div class="val" id="botState" style="display:flex;align-items:center;gap:7px;font-size:.9rem;font-weight:600">—</div>
               </div>
-              <div class="mb-2">
-                <span class="section-title">Last Campaign</span>
-                <span id="lastCampaign" style="color:#555">—</span>
+              <div class="status-row">
+                <div class="lbl">Last Campaign</div>
+                <div class="val" id="lastCampaign">—</div>
               </div>
-              <div class="mb-2">
-                <span class="section-title">Next Campaign</span>
-                <span id="nextCampaign" style="color:#555">—</span>
+              <div class="status-row">
+                <div class="lbl">Next Campaign</div>
+                <div class="val" id="nextCampaign">—</div>
               </div>
-              <div class="mb-2">
-                <span class="section-title">Last Error</span>
-                <span id="lastError" class="text-danger" style="font-size:.8rem">—</span>
+              <div class="status-row" style="border-bottom:none">
+                <div class="lbl">Last Error</div>
+                <div class="val" id="lastError" style="color:var(--red);font-size:.8rem">—</div>
               </div>
-              <button class="btn btn-primary w-100 mt-2" onclick="triggerNow()">
-                <i class="bi bi-play-circle me-2"></i>Trigger Campaign Now
+              <button class="btn btn-green" style="width:100%;justify-content:center;margin-top:16px" onclick="triggerNow(this)">
+                ▶ Trigger Campaign Now
               </button>
             </div>
           </div>
 
-          <!-- Quick Log -->
-          <div class="card">
-            <div class="card-header"><i class="bi bi-terminal me-2"></i>Recent Activity</div>
-            <div class="card-body p-2">
-              <div class="log-box" id="quickLog">Loading...</div>
+          <div class="card" style="margin-top:12px">
+            <div class="card-head">
+              <span class="title">Live Activity</span>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.75rem;color:var(--t2);font-weight:normal">
+                <input type="checkbox" id="autoRefresh" checked style="accent-color:var(--green)"> Auto
+              </label>
             </div>
+            <div class="logbox" id="quickLog">Loading...</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Config Tab ────────────────────────────────────────── -->
-    <div class="tab-pane fade" id="tabConfig">
-      <div class="row g-3">
-        <div class="col-12 col-lg-6">
-          <div class="card">
-            <div class="card-header"><i class="bi bi-gear me-2"></i>Target Settings</div>
-            <div class="card-body">
-              <div class="mb-3">
-                <label class="form-label">Target Company Name</label>
-                <input type="text" class="form-control" id="cfgCompany" placeholder="Acme Services">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Service Hint <small style="color:#444">(used by AI writer)</small></label>
-                <input type="text" class="form-control" id="cfgServiceHint" placeholder="plumbing, HVAC, roofing...">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Keywords <small style="color:#444">(press Enter to add)</small></label>
-                <div class="tag-input" id="keywordTagBox" onclick="document.getElementById('keywordInput').focus()">
-                  <input id="keywordInput" placeholder="Add keyword..." onkeydown="handleTagKey(event,'keywords')">
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Use AI Comment Generation</label>
-                <select class="form-select" id="cfgUseAI">
-                  <option value="false">No — use template bank</option>
-                  <option value="true">Yes — use Claude AI (requires ANTHROPIC_API_KEY)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 col-lg-6">
-          <div class="card mb-3">
-            <div class="card-header"><i class="bi bi-chat-quote me-2"></i>Comment Templates</div>
-            <div class="card-body">
-              <div id="commentTemplates"></div>
-              <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addTemplate('comment')">
-                <i class="bi bi-plus me-1"></i>Add Template
-              </button>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header"><i class="bi bi-hand-thumbs-up me-2"></i>Praise Templates</div>
-            <div class="card-body">
-              <div id="praiseTemplates"></div>
-              <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addTemplate('praise')">
-                <i class="bi bi-plus me-1"></i>Add Template
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 col-lg-6">
-          <div class="card">
-            <div class="card-header"><i class="bi bi-sliders me-2"></i>Behavior Settings</div>
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-6">
-                  <label class="form-label">Posts Per Session</label>
-                  <input type="number" class="form-control" id="cfgPostsPerSession" min="1" max="20">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Max Daily Posts</label>
-                  <input type="number" class="form-control" id="cfgMaxDaily" min="1" max="50">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Min Delay Between Posts (s)</label>
-                  <input type="number" class="form-control" id="cfgMinDelay" min="10">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Max Delay Between Posts (s)</label>
-                  <input type="number" class="form-control" id="cfgMaxDelay" min="20">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Operating Hours Start</label>
-                  <input type="number" class="form-control" id="cfgHoursStart" min="0" max="23">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Operating Hours End</label>
-                  <input type="number" class="form-control" id="cfgHoursEnd" min="0" max="23">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 mt-2">
-          <button class="btn btn-primary px-4" onclick="saveConfig()">
-            <i class="bi bi-floppy me-2"></i>Save Configuration
-          </button>
-          <span id="cfgMsg" class="ms-3" style="color:#555"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Proxies Tab ───────────────────────────────────────── -->
-    <div class="tab-pane fade" id="tabProxies">
+    <!-- ── COMMENT HISTORY PANEL ────────────────────── -->
+    <div id="panel-history" style="display:none">
       <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-shield-check me-2"></i>Proxy Pool Health</span>
-          <button class="btn btn-sm btn-outline-secondary" onclick="loadProxies()">
-            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-          </button>
+        <div class="card-head">
+          <span class="title">Comment History</span>
+          <button class="btn btn-ghost" onclick="loadHistory()" style="font-size:.75rem;padding:4px 8px">↻ Refresh</button>
         </div>
-        <div class="card-body p-0">
-          <table class="table table-hover mb-0">
+        <div class="card-body-flush">
+          <table class="tbl">
             <thead>
-              <tr><th>Account</th><th>Email</th><th>Provider</th><th>Country</th><th>Status</th><th>Failures</th></tr>
+              <tr><th>Time</th><th>Account</th><th>Comment</th><th>Status</th></tr>
             </thead>
-            <tbody id="proxyTable">
-              <tr><td colspan="6" class="text-center py-4" style="color:#333">Loading...</td></tr>
+            <tbody id="historyTable">
+              <tr><td colspan="4" style="text-align:center;color:var(--t3);padding:32px">Loading...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ── Logs Tab ──────────────────────────────────────────── -->
-    <div class="tab-pane fade" id="tabLogs">
+    <!-- ── CONFIG PANEL ─────────────────────────────── -->
+    <div id="panel-config" style="display:none">
+      <div class="row row-2">
+        <div>
+          <div class="card">
+            <div class="card-head"><span class="title">Target Settings</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="cfgCompany" placeholder="Acme Services">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Service Hint <span style="color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0">(for AI writer)</span></label>
+                <input type="text" class="form-control" id="cfgServiceHint" placeholder="plumbing, HVAC, roofing...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Keywords</label>
+                <div class="tag-box" id="keywordBox" onclick="document.getElementById('tagInput').focus()">
+                  <input id="tagInput" placeholder="Add keyword, press Enter" onkeydown="handleTagKey(event)">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Comment Generation</label>
+                <select class="form-control" id="cfgUseAI">
+                  <option value="false">Template bank (no API key needed)</option>
+                  <option value="true">Claude AI (requires ANTHROPIC_API_KEY)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-head"><span class="title">Behavior</span></div>
+            <div class="card-body">
+              <div class="row row-2">
+                <div class="form-group">
+                  <label class="form-label">Posts / Session</label>
+                  <input type="number" class="form-control" id="cfgPostsPerSession" min="1" max="20">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max / Day</label>
+                  <input type="number" class="form-control" id="cfgMaxDaily" min="1" max="50">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Min Delay (s)</label>
+                  <input type="number" class="form-control" id="cfgMinDelay" min="10">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max Delay (s)</label>
+                  <input type="number" class="form-control" id="cfgMaxDelay" min="20">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hours Start</label>
+                  <input type="number" class="form-control" id="cfgHoursStart" min="0" max="23">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Hours End</label>
+                  <input type="number" class="form-control" id="cfgHoursEnd" min="0" max="23">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head">
+            <span class="title">Recommendation Templates</span>
+            <button class="btn btn-outline" onclick="addTemplate('comment')" style="font-size:.72rem;padding:4px 10px">+ Add</button>
+          </div>
+          <div class="card-body">
+            <div id="commentTemplates"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="title">Praise Templates</span>
+            <button class="btn btn-outline" onclick="addTemplate('praise')" style="font-size:.72rem;padding:4px 10px">+ Add</button>
+          </div>
+          <div class="card-body">
+            <div id="praiseTemplates"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;align-items:center;gap:12px">
+        <button class="btn btn-green" onclick="saveConfig()" style="padding:10px 24px">Save Configuration</button>
+        <span class="save-msg" id="cfgMsg"></span>
+      </div>
+    </div>
+
+    <!-- ── PROXIES PANEL ─────────────────────────────── -->
+    <div id="panel-proxies" style="display:none">
       <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-terminal me-2"></i>Live Logs</span>
-          <div class="d-flex gap-2">
-            <label style="color:#555;font-size:.85rem" class="my-auto">
-              <input type="checkbox" id="autoRefreshLogs" checked class="me-1">Auto-refresh
+        <div class="card-head">
+          <span class="title">Proxy Pool</span>
+          <button class="btn btn-ghost" onclick="loadProxies()" style="font-size:.75rem;padding:4px 8px">↻ Refresh</button>
+        </div>
+        <div class="card-body-flush">
+          <table class="tbl">
+            <thead>
+              <tr><th>Account</th><th>Email</th><th>Provider</th><th>Country</th><th>Status</th><th>Failures</th></tr>
+            </thead>
+            <tbody id="proxyTable">
+              <tr><td colspan="6" style="text-align:center;color:var(--t3);padding:32px">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LOGS PANEL ────────────────────────────────── -->
+    <div id="panel-logs" style="display:none">
+      <div class="card">
+        <div class="card-head">
+          <span class="title">Live Logs</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.75rem;color:var(--t2);font-weight:normal">
+              <input type="checkbox" id="autoRefreshLogs" checked style="accent-color:var(--green)"> Auto-refresh
             </label>
-            <button class="btn btn-sm btn-outline-secondary" onclick="loadLogs()">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
+            <button class="btn btn-ghost" onclick="loadLogs()" style="font-size:.75rem;padding:4px 8px">↻ Refresh</button>
           </div>
         </div>
-        <div class="card-body p-2">
-          <div class="log-box" id="fullLog" style="height:500px">Loading...</div>
-        </div>
+        <div class="logbox" id="fullLog" style="height:calc(100vh - 180px)">Loading...</div>
       </div>
     </div>
 
-    <!-- ── Comment History Tab ───────────────────────────────── -->
-    <div class="tab-pane fade" id="tabHistory">
-      <div class="card">
-        <div class="card-header"><i class="bi bi-chat-left-dots me-2"></i>Comment History</div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead>
-                <tr><th>Time</th><th>Account</th><th>Comment</th><th>Status</th></tr>
-              </thead>
-              <tbody id="commentTable">
-                <tr><td colspan="4" class="text-center py-4" style="color:#333">Loading...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+  </main>
+</div>
 
-  </div><!-- /tab-content -->
-
-</div><!-- /container -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ── Tag Input System ──────────────────────────────────────────────────────
-const _tags = { keywords: [] };
+// ── Panel router ────────────────────────────────────────────────────────────
+const PANELS = ['dashboard','history','config','proxies','logs'];
+function showPanel(name, btn) {
+  PANELS.forEach(p => {
+    const el = document.getElementById('panel-' + p);
+    if (el) el.style.display = p === name ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (name === 'logs')    loadLogs();
+  if (name === 'proxies') loadProxies();
+  if (name === 'history') loadHistory();
+}
 
-function handleTagKey(e, key) {
+// ── Tag input ────────────────────────────────────────────────────────────────
+const tags = [];
+function handleTagKey(e) {
   if (e.key === 'Enter' || e.key === ',') {
     e.preventDefault();
-    const val = e.target.value.trim().replace(/,$/, '');
-    if (val && !_tags[key].includes(val)) {
-      _tags[key].push(val);
-      renderTags(key);
-    }
+    const val = e.target.value.trim().replace(/,$/,'');
+    if (val && !tags.includes(val)) { tags.push(val); renderTags(); }
     e.target.value = '';
   }
 }
-
-function renderTags(key) {
-  const box = document.getElementById('keywordTagBox');
-  const input = document.getElementById('keywordInput');
+function renderTags() {
+  const box = document.getElementById('keywordBox');
+  const inp = document.getElementById('tagInput');
   box.querySelectorAll('.tag').forEach(t => t.remove());
-  _tags[key].forEach((tag, i) => {
+  tags.forEach((t, i) => {
     const el = document.createElement('span');
     el.className = 'tag';
-    el.innerHTML = `${tag}<span class="remove" onclick="removeTag('${key}',${i})">×</span>`;
-    box.insertBefore(el, input);
+    el.innerHTML = `${t}<span class="rm" onclick="rmTag(${i})">×</span>`;
+    box.insertBefore(el, inp);
   });
 }
+function rmTag(i) { tags.splice(i,1); renderTags(); }
+function setTags(arr) { tags.length=0; arr.forEach(t=>tags.push(t)); renderTags(); }
 
-function removeTag(key, i) {
-  _tags[key].splice(i, 1);
-  renderTags(key);
+// ── Templates ────────────────────────────────────────────────────────────────
+function addTemplate(type, val='') {
+  const id = type==='comment' ? 'commentTemplates' : 'praiseTemplates';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  wrap.innerHTML = `
+    <textarea class="form-control" rows="2" placeholder="Use {company} as placeholder">${val}</textarea>
+    <button class="btn btn-danger" onclick="this.parentElement.remove()" style="align-self:flex-start;padding:6px 10px;flex-shrink:0">✕</button>`;
+  document.getElementById(id).appendChild(wrap);
+}
+function getTpls(id) {
+  return [...document.querySelectorAll(`#${id} textarea`)].map(t=>t.value).filter(v=>v.trim());
 }
 
-function setTags(key, arr) {
-  _tags[key] = arr;
-  renderTags(key);
-}
-
-// ── Template Builders ─────────────────────────────────────────────────────
-function addTemplate(type, value = '') {
-  const containerId = type === 'comment' ? 'commentTemplates' : 'praiseTemplates';
-  const container = document.getElementById(containerId);
-  const div = document.createElement('div');
-  div.className = 'd-flex gap-2 mb-2';
-  div.innerHTML = `
-    <textarea class="form-control" rows="2" placeholder="Use {company} as placeholder">${value}</textarea>
-    <button class="btn btn-sm btn-outline-danger align-self-start mt-1" onclick="this.parentElement.remove()">
-      <i class="bi bi-trash"></i>
-    </button>`;
-  container.appendChild(div);
-}
-
-function getTemplates(containerId) {
-  return [...document.querySelectorAll(`#${containerId} textarea`)].map(t => t.value).filter(v => v.trim());
-}
-
-// ── Config Load/Save ──────────────────────────────────────────────────────
+// ── Config ───────────────────────────────────────────────────────────────────
 let _cfg = {};
-
 async function loadConfig() {
-  const r = await fetch('/api/config');
-  _cfg = await r.json();
-
-  document.getElementById('cfgCompany').value     = _cfg.target_company || '';
-  document.getElementById('cfgServiceHint').value = _cfg.service_hint   || '';
-  document.getElementById('cfgUseAI').value        = String(_cfg.use_ai_comments || false);
-
-  setTags('keywords', _cfg.keywords || []);
-
+  const r = await fetch('/api/config'); _cfg = await r.json();
+  document.getElementById('cfgCompany').value       = _cfg.target_company || '';
+  document.getElementById('cfgServiceHint').value   = _cfg.service_hint   || '';
+  document.getElementById('cfgUseAI').value          = String(_cfg.use_ai_comments||false);
+  setTags(_cfg.keywords||[]);
   document.getElementById('commentTemplates').innerHTML = '';
-  (_cfg.comment_templates || []).forEach(t => addTemplate('comment', t));
-
+  (_cfg.comment_templates||[]).forEach(t=>addTemplate('comment',t));
   document.getElementById('praiseTemplates').innerHTML = '';
-  (_cfg.praise_templates  || []).forEach(t => addTemplate('praise', t));
-
-  const b = _cfg.behavior || {};
-  document.getElementById('cfgPostsPerSession').value = b.posts_per_session          || 5;
-  document.getElementById('cfgMaxDaily').value        = b.max_daily_posts             || 15;
-  document.getElementById('cfgMinDelay').value        = b.min_delay_between_posts     || 45;
-  document.getElementById('cfgMaxDelay').value        = b.max_delay_between_posts     || 120;
-  document.getElementById('cfgHoursStart').value      = (b.operating_hours || {}).start || 8;
-  document.getElementById('cfgHoursEnd').value        = (b.operating_hours || {}).end   || 22;
+  (_cfg.praise_templates||[]).forEach(t=>addTemplate('praise',t));
+  const b = _cfg.behavior||{};
+  document.getElementById('cfgPostsPerSession').value = b.posts_per_session           ||5;
+  document.getElementById('cfgMaxDaily').value        = b.max_daily_posts              ||15;
+  document.getElementById('cfgMinDelay').value        = b.min_delay_between_posts      ||45;
+  document.getElementById('cfgMaxDelay').value        = b.max_delay_between_posts      ||120;
+  document.getElementById('cfgHoursStart').value      = (b.operating_hours||{}).start  ||8;
+  document.getElementById('cfgHoursEnd').value        = (b.operating_hours||{}).end    ||22;
 }
-
 async function saveConfig() {
   const data = {
     ..._cfg,
     target_company:    document.getElementById('cfgCompany').value,
     service_hint:      document.getElementById('cfgServiceHint').value,
-    use_ai_comments:   document.getElementById('cfgUseAI').value === 'true',
-    keywords:          _tags.keywords,
-    comment_templates: getTemplates('commentTemplates'),
-    praise_templates:  getTemplates('praiseTemplates'),
+    use_ai_comments:   document.getElementById('cfgUseAI').value==='true',
+    keywords:          [...tags],
+    comment_templates: getTpls('commentTemplates'),
+    praise_templates:  getTpls('praiseTemplates'),
     behavior: {
-      posts_per_session:       parseInt(document.getElementById('cfgPostsPerSession').value),
-      max_daily_posts:         parseInt(document.getElementById('cfgMaxDaily').value),
-      min_delay_between_posts: parseInt(document.getElementById('cfgMinDelay').value),
-      max_delay_between_posts: parseInt(document.getElementById('cfgMaxDelay').value),
+      posts_per_session:       +document.getElementById('cfgPostsPerSession').value,
+      max_daily_posts:         +document.getElementById('cfgMaxDaily').value,
+      min_delay_between_posts: +document.getElementById('cfgMinDelay').value,
+      max_delay_between_posts: +document.getElementById('cfgMaxDelay').value,
       operating_hours: {
-        start: parseInt(document.getElementById('cfgHoursStart').value),
-        end:   parseInt(document.getElementById('cfgHoursEnd').value),
+        start: +document.getElementById('cfgHoursStart').value,
+        end:   +document.getElementById('cfgHoursEnd').value,
       }
     }
   };
-  const r = await fetch('/api/config', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+  const r = await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
   const msg = document.getElementById('cfgMsg');
-  if (r.ok) {
-    msg.textContent = '✓ Saved';
-    msg.style.color = '#39FF14';
-  } else {
-    msg.textContent = '✗ Save failed';
-    msg.style.color = '#f85149';
-  }
-  setTimeout(() => msg.textContent = '', 3000);
+  if (r.ok) { msg.textContent='✓ Saved'; msg.style.color='var(--green)'; }
+  else       { msg.textContent='✗ Failed'; msg.style.color='var(--red)'; }
+  setTimeout(()=>msg.textContent='', 3000);
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────
+// ── Stats / Status ───────────────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const r = await fetch('/api/stats');
-    const d = await r.json();
-
-    document.getElementById('statTotal').textContent     = d.total_comments  ?? '—';
-    document.getElementById('statToday').textContent     = d.today_comments  ?? '—';
-    document.getElementById('statWeek').textContent      = d.week_comments   ?? '—';
-    document.getElementById('statRate').textContent      = (d.success_rate ?? '—') + (d.success_rate !== undefined ? '%' : '');
-    document.getElementById('statProxies').textContent   = `${d.healthy ?? '—'}/${d.total ?? '—'}`;
-    document.getElementById('statCampaigns').textContent = d.total_campaigns ?? '—';
+    const d = await fetch('/api/stats').then(r=>r.json());
+    document.getElementById('sTotal').textContent     = d.total_comments ?? '—';
+    document.getElementById('sToday').textContent     = d.today_comments ?? '—';
+    document.getElementById('sWeek').textContent      = d.week_comments  ?? '—';
+    document.getElementById('sRate').textContent      = d.success_rate!=null ? d.success_rate+'%' : '—';
+    document.getElementById('sProxies').textContent   = d.total!=null ? `${d.healthy}/${d.total}` : '—';
+    document.getElementById('sCampaigns').textContent = d.total_campaigns ?? '—';
 
     const running = d.running;
-    const badge = document.getElementById('statusBadge');
-    badge.textContent = running ? '● Running' : '○ Idle';
-    badge.className = `badge px-3 py-2 ${running ? 'badge-running' : 'badge-idle'}`;
+    const dot  = document.getElementById('statusDot');
+    const txt  = document.getElementById('statusText');
+    dot.className  = 'dot ' + (running ? 'dot-green pulse' : 'dot-grey');
+    txt.textContent = running ? 'Running' : 'Idle';
 
     const botState = document.getElementById('botState');
-    botState.innerHTML = running
-      ? '<span class="status-dot dot-green pulse"></span>Running'
-      : '<span class="status-dot dot-yellow"></span>Idle';
-
+    if (running) {
+      botState.innerHTML = '<span class="dot dot-green pulse"></span>Running';
+    } else {
+      botState.innerHTML = '<span class="dot dot-yellow"></span>Idle';
+    }
     document.getElementById('lastCampaign').textContent =
-      d.last_campaign ? new Date(d.last_campaign * 1000).toLocaleString() : 'Never';
+      d.last_campaign ? new Date(d.last_campaign*1000).toLocaleString() : 'Never';
     document.getElementById('nextCampaign').textContent =
-      d.next_campaign ? new Date(d.next_campaign * 1000).toLocaleString() : '—';
-    document.getElementById('lastError').textContent = d.last_error || '—';
-
-  } catch (e) { console.error('Stats error', e); }
+      d.next_campaign ? new Date(d.next_campaign*1000).toLocaleString() : '—';
+    document.getElementById('lastError').textContent = d.last_error||'—';
+  } catch(e) {}
 }
 
-// ── Campaigns ─────────────────────────────────────────────────────────────
+// ── Campaigns ────────────────────────────────────────────────────────────────
 async function loadCampaigns() {
-  const r    = await fetch('/api/campaigns');
-  const rows = await r.json();
-  const tbody = document.getElementById('campaignTable');
+  const rows = await fetch('/api/campaigns').then(r=>r.json());
+  const tb = document.getElementById('campaignTable');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4" style="color:#333">No campaigns yet</td></tr>';
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:32px">No campaigns yet</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(c => {
-    const rate  = c.posts_targeted ? Math.round(c.posts_success / c.posts_targeted * 100) : 0;
-    const color = rate >= 80 ? '#39FF14' : rate >= 50 ? '#d29922' : '#f85149';
+  tb.innerHTML = rows.map(c => {
+    const rate = c.posts_targeted ? Math.round(c.posts_success/c.posts_targeted*100) : 0;
+    const rc   = rate>=80?'var(--green)':rate>=50?'var(--yellow)':'var(--red)';
     return `<tr>
-      <td>${new Date(c.started_at * 1000).toLocaleString()}</td>
-      <td>${c.company || '—'}</td>
-      <td><small style="color:#555">${(c.keywords || '').split(',').join(', ')}</small></td>
+      <td class="strong">${new Date(c.started_at*1000).toLocaleString()}</td>
+      <td class="strong">${c.company||'—'}</td>
+      <td style="color:var(--t3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(c.keywords||'').split(',').join(', ')}</td>
       <td>${c.posts_found}</td>
-      <td style="color:#39FF14">${c.posts_success}</td>
-      <td style="color:#f85149">${c.posts_failed}</td>
-      <td style="color:${color}">${rate}%</td>
+      <td style="color:var(--green)">${c.posts_success}</td>
+      <td style="color:var(--red)">${c.posts_failed}</td>
+      <td style="color:${rc};font-weight:600">${rate}%</td>
     </tr>`;
   }).join('');
 }
 
-// ── Proxies ───────────────────────────────────────────────────────────────
+// ── Proxies ──────────────────────────────────────────────────────────────────
 async function loadProxies() {
-  const r      = await fetch('/api/proxies');
-  const proxies = await r.json();
-  const tbody  = document.getElementById('proxyTable');
+  const proxies = await fetch('/api/proxies').then(r=>r.json());
+  const tb = document.getElementById('proxyTable');
   if (!proxies.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4" style="color:#333">No proxies configured</td></tr>';
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:32px">No proxies configured</td></tr>';
     return;
   }
-  tbody.innerHTML = proxies.map(p => `<tr>
-    <td>${p.name}</td>
-    <td><small style="color:#555">${p.email}</small></td>
-    <td><span class="proxy-badge">${p.provider}</span></td>
-    <td>${(p.country || 'us').toUpperCase()}</td>
+  tb.innerHTML = proxies.map(p=>`<tr>
+    <td class="strong">${p.name}</td>
+    <td style="color:var(--t3)">${p.email}</td>
+    <td><span class="provider-tag">${p.provider}</span></td>
+    <td>${(p.country||'us').toUpperCase()}</td>
     <td>${p.healthy
-      ? '<span class="status-dot dot-green"></span><span style="color:#39FF14">Healthy</span>'
-      : '<span class="status-dot dot-red"></span><span style="color:#f85149">Unhealthy</span>'}</td>
+      ? '<span class="badge badge-green">● Healthy</span>'
+      : '<span class="badge badge-red">● Unhealthy</span>'}</td>
     <td>${p.fail_count}</td>
   </tr>`).join('');
 }
 
-// ── Logs ──────────────────────────────────────────────────────────────────
-function colorizeLog(line) {
-  if (line.includes('ERROR') || line.includes('FAILED') || line.includes('❌'))
-    return `<div class="log-error">${line}</div>`;
-  if (line.includes('WARNING') || line.includes('WARN'))
-    return `<div class="log-warn">${line}</div>`;
-  if (line.includes('[CAMPAIGN]') || line.includes('[AUTO]'))
-    return `<div class="log-camp">${line}</div>`;
-  if (line.includes('[BOT]') || line.includes('✅'))
-    return `<div class="log-bot">${line}</div>`;
-  return `<div class="log-info">${line}</div>`;
+// ── Logs ─────────────────────────────────────────────────────────────────────
+function colorLine(l) {
+  const e = l.replace(/</g,'&lt;');
+  if (e.includes('ERROR')||e.includes('FAILED'))    return `<div class="log-err">${e}</div>`;
+  if (e.includes('WARN'))                           return `<div class="log-warn">${e}</div>`;
+  if (e.includes('[CAMPAIGN]')||e.includes('[AUTO]'))return `<div class="log-camp">${e}</div>`;
+  if (e.includes('[BOT]')||e.includes('Posted as')) return `<div class="log-bot">${e}</div>`;
+  return `<div class="log-info">${e}</div>`;
 }
-
 async function loadLogs() {
   try {
-    const r = await fetch('/api/logs?lines=200');
-    const d = await r.json();
-    const html = (d.lines || []).map(l => colorizeLog(l.replace(/</g,'&lt;'))).join('');
-
-    ['fullLog', 'quickLog'].forEach(id => {
-      const el = document.getElementById(id);
-      el.innerHTML = html || '<div class="log-info">No logs yet.</div>';
+    const d = await fetch('/api/logs?lines=250').then(r=>r.json());
+    const html = (d.lines||[]).map(colorLine).join('');
+    ['fullLog','quickLog'].forEach(id=>{
+      const el=document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = html||'<div class="log-info">No logs yet.</div>';
       el.scrollTop = el.scrollHeight;
     });
-  } catch (e) { console.error('Log error', e); }
+  } catch(e) {}
 }
 
-// ── Comment History ───────────────────────────────────────────────────────
-async function loadCommentHistory() {
-  try {
-    const r    = await fetch('/api/comments');
-    const rows = await r.json();
-    const tbody = document.getElementById('commentTable');
-    if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4" style="color:#333">No comments yet</td></tr>';
-      return;
-    }
-    tbody.innerHTML = rows.map(c => `<tr>
-      <td><small style="color:#555">${new Date(c.commented_at * 1000).toLocaleString()}</small></td>
-      <td><small style="color:#555">${c.account_name}</small></td>
-      <td>${c.comment_text || '—'}</td>
-      <td>${c.success
-        ? '<span class="badge" style="background:#39FF1420;color:#39FF14;border:1px solid #39FF1440">Posted</span>'
-        : '<span class="badge bg-danger">Failed</span>'}</td>
-    </tr>`).join('');
-  } catch (e) { console.error('History error', e); }
+// ── History ──────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const rows = await fetch('/api/comments').then(r=>r.json());
+  const tb = document.getElementById('historyTable');
+  if (!rows.length) {
+    tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:32px">No comments yet</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(c=>`<tr>
+    <td style="color:var(--t3);white-space:nowrap">${new Date(c.commented_at*1000).toLocaleString()}</td>
+    <td class="strong">${c.account_name}</td>
+    <td style="max-width:400px">${c.comment_text||'—'}</td>
+    <td>${c.success
+      ? '<span class="badge badge-green">Posted</span>'
+      : '<span class="badge badge-red">Failed</span>'}</td>
+  </tr>`).join('');
 }
 
-// ── Trigger ───────────────────────────────────────────────────────────────
-async function triggerNow() {
-  const btn = event.currentTarget || document.querySelector('[onclick="triggerNow()"]');
-  await fetch('/api/trigger', { method: 'POST' });
-  const orig = btn ? btn.innerHTML : '';
-  if (btn) { btn.innerHTML = '<i class="bi bi-check me-1"></i>Triggered!'; btn.disabled = true; }
-  setTimeout(() => {
-    if (btn) { btn.innerHTML = orig; btn.disabled = false; }
-  }, 3000);
+// ── Trigger ──────────────────────────────────────────────────────────────────
+async function triggerNow(btn) {
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '✓ Triggered';
+  await fetch('/api/trigger',{method:'POST'});
+  setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; }, 3000);
 }
 
-// ── Polling ───────────────────────────────────────────────────────────────
-function poll() {
-  loadStats();
-  if (document.getElementById('autoRefreshLogs').checked) loadLogs();
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
-  await Promise.all([loadStats(), loadCampaigns(), loadProxies(), loadLogs(), loadCommentHistory()]);
-
-  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-    tab.addEventListener('shown.bs.tab', e => {
-      if (e.target.getAttribute('href') === '#tabLogs')      loadLogs();
-      if (e.target.getAttribute('href') === '#tabProxies')   loadProxies();
-      if (e.target.getAttribute('href') === '#tabHistory')   loadCommentHistory();
-      if (e.target.getAttribute('href') === '#tabDashboard') { loadStats(); loadCampaigns(); }
-    });
-  });
-
-  setInterval(poll, 30000);
+  await Promise.all([loadStats(), loadCampaigns(), loadProxies(), loadLogs()]);
+  setInterval(()=>{
+    loadStats();
+    if (document.getElementById('autoRefresh')?.checked) loadLogs();
+    if (document.getElementById('autoRefreshLogs')?.checked) loadLogs();
+  }, 30000);
 });
 </script>
 </body>
