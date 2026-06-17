@@ -1,0 +1,26 @@
+﻿node_modules/
+**/node_modules/
+.env
+**/.env
+.env.local
+**/.env.local
+*.log
+.DS_Store
+dist/
+build/
+.vscode/
+*.sqlite
+*.db
+__pycache__/
+*.pyc
+.claude/
+**/.claude/
+*.zip
+*.tar.gz
+
+# Account credentials and session cookies — never commit
+referIt/accounts/profiles.json
+referIt/accounts/cookies/
+
+# Stripe config may contain webhook URLs tied to live keys
+stripebot.config.json
