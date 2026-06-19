@@ -1,0 +1,37 @@
+{
+  "project": "The Gameboard",
+  "webhook": {
+    "url": "",
+    "events": [
+      "checkout.session.completed",
+      "payment_intent.succeeded",
+      "payment_intent.payment_failed",
+      "customer.subscription.created",
+      "customer.subscription.updated",
+      "customer.subscription.deleted",
+      "invoice.paid",
+      "invoice.payment_failed"
+    ]
+  },
+  "products": [
+    {
+      "envVar": "STRIPE_PRICE_ID_FEATURED",
+      "name": "Featured Listing",
+      "amount": 5,
+      "description": "Feature your quest at the top of the Quest Board for maximum visibility."
+    },
+    {
+      "envVar": "STRIPE_PRICE_ID_HIGHLIGHTED",
+      "name": "Highlighted Listing",
+      "amount": 15,
+      "description": "Highlight your quest with a gold border and priority placement."
+    },
+    {
+      "envVar": "STRIPE_PRICE_ID_PRO",
+      "name": "Pro Player",
+      "amount": 19,
+      "interval": "month",
+      "description": "Pro Player: reduced house rake (7% instead of 10%), priority support, and exclusive Pro badge."
+    }
+  ]
+}

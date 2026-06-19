@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  role            UserRole  @default(PLAYER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Game stats
+  xp              Int       @default(0)
+  level           Int       @default(1)
+  reputation      Int       @default(100)
+  totalEarnings   Int       @default(0)
+  totalSpent      Int       @default(0)
+  questsCreated   Int       @default(0)
+  questsCompleted Int       @default(0)
+
+  // Stripe
+  stripeAccountId     String?
+  stripeCustomerId    String?
+  isPro               Boolean @default(false)
+  proSubscriptionId   String?
+
+  // Credentials auth
+  password        String?
+
+  accounts        Account[]
+  sessions        Session[]
+  quests          Quest[]           @relation("QuestCreator")
+  participations  QuestParticipant[]
+  reviewsGiven    Review[]          @relation("ReviewGiver")
+  reviewsReceived Review[]          @relation("ReviewReceiver")
+  transactions    Transaction[]
+  disputesFiled   Dispute[]         @relation("DisputeFiler")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum UserRole {
+  PLAYER
+  GAMEMASTER
+}
+
+enum QuestType {
+  SERVICE
+  CHALLENGE
+  ITEM
+  BET
+  EXPERIENCE
+}
+
+enum QuestStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PromotionLevel {
+  NONE
+  FEATURED
+  HIGHLIGHTED
+}
+
+model Quest {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  type        QuestType
+  category    String          @default("General")
+  price       Int             // in cents
+  feeAmount   Int             // house rake in cents
+  status      QuestStatus     @default(OPEN)
+  deadline    DateTime?
+  maxSlots    Int             @default(1)
+  filledSlots Int             @default(0)
+  promoted    PromotionLevel  @default(NONE)
+  rules       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  creatorId   String
+  creator     User             @relation("QuestCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  participants QuestParticipant[]
+  transactions Transaction[]
+  reviews      Review[]
+  disputes     Dispute[]
+}
+
+enum ParticipantStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  COMPLETED
+  RELEASED
+  CANCELLED
+  REFUNDED
+}
+
+model QuestParticipant {
+  id            String             @id @default(cuid())
+  questId       String
+  userId        String
+  amountPaid    Int                // in cents
+  status        ParticipantStatus  @default(PENDING)
+  joinedAt      DateTime           @default(now())
+  completedAt   DateTime?
+  releasedAt    DateTime?
+
+  quest         Quest              @relation(fields: [questId], references: [id], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  disputes      Dispute[]
+
+  @@unique([questId, userId])
+}
+
+enum TransactionStatus {
+  PENDING
+  HELD
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+model Transaction {
+  id                    String            @id @default(cuid())
+  questId               String
+  participantId         String?
+  payerId               String
+  stripePaymentIntentId String?
+  amount                Int               // in cents
+  feeAmount             Int               // house rake in cents
+  netAmount             Int               // payout to creator in cents
+  status                TransactionStatus @default(PENDING)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  quest         Quest              @relation(fields: [questId], references: [id], onDelete: Cascade)
+  participant   QuestParticipant?  @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  payer         User               @relation(fields: [payerId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  questId     String
+  reviewerId  String
+  revieweeId  String
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  quest       Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  reviewer    User     @relation("ReviewGiver", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee    User     @relation("ReviewReceiver", fields: [revieweeId], references: [id], onDelete: Cascade)
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+}
+
+model Dispute {
+  id          String         @id @default(cuid())
+  questId     String
+  participantId String
+  filerId     String
+  reason      String
+  evidence    String?
+  status      DisputeStatus  @default(OPEN)
+  resolution  String?
+  createdAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+
+  quest       Quest           @relation(fields: [questId], references: [id], onDelete: Cascade)
+  participant QuestParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  filer       User            @relation("DisputeFiler", fields: [filerId], references: [id], onDelete: Cascade)
+}
+
+model FeeConfig {
+  id              String   @id @default(cuid())
+  rakePercent     Int      @default(10)    // e.g. 10 = 10%
+  listingFeatured Int      @default(500)   // cents
+  listingHighlighted Int   @default(1500)  // cents
+  expediteFee     Int      @default(200)   // cents
+  withdrawalPercent Int    @default(2)     // e.g. 2 = 2%
+  withdrawalMin   Int      @default(100)   // cents
+  proPrice        Int      @default(1900)  // cents per month
+  proRakePercent  Int      @default(7)     // e.g. 7 = 7%
+  updatedAt       DateTime @updatedAt
+}
