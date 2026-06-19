@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Account {
@@ -69,7 +70,8 @@ model User {
   reviewsGiven    Review[]          @relation("ReviewGiver")
   reviewsReceived Review[]          @relation("ReviewReceiver")
   transactions    Transaction[]
-  disputesFiled   Dispute[]         @relation("DisputeFiler")
+  disputesFiled       Dispute[]           @relation("DisputeFiler")
+  withdrawalRequests  WithdrawalRequest[]
 }
 
 model VerificationToken {
@@ -222,6 +224,26 @@ model Dispute {
   quest       Quest           @relation(fields: [questId], references: [id], onDelete: Cascade)
   participant QuestParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   filer       User            @relation("DisputeFiler", fields: [filerId], references: [id], onDelete: Cascade)
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+model WithdrawalRequest {
+  id          String           @id @default(cuid())
+  userId      String
+  amount      Int              // gross amount in cents
+  feeAmount   Int              // withdrawal fee in cents
+  status      WithdrawalStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime         @default(now())
+  processedAt DateTime?
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model FeeConfig {

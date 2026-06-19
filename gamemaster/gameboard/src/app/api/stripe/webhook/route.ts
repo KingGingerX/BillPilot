@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { sendQuestJoinEmail } from "@/lib/email";
 import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
@@ -68,31 +69,38 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   }
 }
 
-async function completeQuestJoin(questId: string, userId: string, amountPaid: number, sessionId: string) {
+async function completeQuestJoin(
+  questId: string,
+  userId: string,
+  amountPaid: number,
+  sessionId: string
+) {
   const existing = await prisma.questParticipant.findUnique({
     where: { questId_userId: { questId, userId } },
   });
   if (existing) return;
 
-  const quest = await prisma.quest.findUnique({ where: { id: questId } });
+  const quest = await prisma.quest.findUnique({
+    where: { id: questId },
+    include: { creator: { select: { email: true, name: true } } },
+  });
   if (!quest) return;
 
   const feeConfig = await prisma.feeConfig.findFirst();
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { isPro: true } });
-  const rakePercent = user?.isPro ? (feeConfig?.proRakePercent ?? 7) : (feeConfig?.rakePercent ?? 10);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isPro: true, name: true },
+  });
+  const rakePercent = user?.isPro
+    ? (feeConfig?.proRakePercent ?? 7)
+    : (feeConfig?.rakePercent ?? 10);
   const feeAmount = Math.round(amountPaid * (rakePercent / 100));
   const netAmount = amountPaid - feeAmount;
-
   const allSlotsFilled = quest.filledSlots + 1 >= quest.maxSlots;
 
   await prisma.$transaction([
     prisma.questParticipant.create({
-      data: {
-        questId,
-        userId,
-        amountPaid,
-        status: "PAID",
-      },
+      data: { questId, userId, amountPaid, status: "PAID" },
     }),
     prisma.quest.update({
       where: { id: questId },
@@ -117,6 +125,16 @@ async function completeQuestJoin(questId: string, userId: string, amountPaid: nu
       data: { totalSpent: { increment: amountPaid }, xp: { increment: 5 } },
     }),
   ]);
+
+  if (quest.creator.email) {
+    await sendQuestJoinEmail(
+      quest.creator.email,
+      quest.creator.name ?? "Creator",
+      quest.title,
+      user?.name ?? "A player",
+      amountPaid
+    );
+  }
 }
 
 async function handleSubscriptionActive(subscription: Stripe.Subscription) {
@@ -127,9 +145,10 @@ async function handleSubscriptionActive(subscription: Stripe.Subscription) {
     data: {
       isPro: true,
       proSubscriptionId: subscription.id,
-      stripeCustomerId: typeof subscription.customer === "string"
-        ? subscription.customer
-        : subscription.customer.id,
+      stripeCustomerId:
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer.id,
     },
   });
 }
@@ -143,9 +162,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     });
     return;
   }
-  const customerId = typeof subscription.customer === "string"
-    ? subscription.customer
-    : subscription.customer.id;
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
   await prisma.user.updateMany({
     where: { stripeCustomerId: customerId },
     data: { isPro: false, proSubscriptionId: null },
@@ -153,9 +173,12 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handleInvoiceFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = (invoice as unknown as { subscription?: string | { id: string } }).subscription;
+  const subscriptionId = (
+    invoice as unknown as { subscription?: string | { id: string } }
+  ).subscription;
   if (!subscriptionId) return;
-  const subId = typeof subscriptionId === "string" ? subscriptionId : subscriptionId.id;
+  const subId =
+    typeof subscriptionId === "string" ? subscriptionId : subscriptionId.id;
   await prisma.user.updateMany({
     where: { proSubscriptionId: subId },
     data: { isPro: false },

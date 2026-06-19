@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { formatCurrency } from "@/lib/utils";
+import { sendDisputeFiledEmail } from "@/lib/email";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +14,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { JoinQuestButton, PromoteQuestButton } from "@/components/payment-buttons";
-import { CheckCircle, Clock, Shield, Swords, TrendingUp, Trophy, User, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Shield,
+  Swords,
+  TrendingUp,
+  Trophy,
+  User,
+  Zap,
+} from "lucide-react";
 
 const typeIcons: Record<string, React.ReactNode> = {
   SERVICE: <Zap className="h-4 w-4" />,
@@ -37,10 +50,16 @@ export default async function QuestDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ payment_success?: string; session_id?: string; promotion_success?: string }>;
+  searchParams: Promise<{
+    payment_success?: string;
+    session_id?: string;
+    promotion_success?: string;
+    dispute_filed?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { payment_success, session_id, promotion_success } = await searchParams;
+  const { payment_success, session_id, promotion_success, dispute_filed } =
+    await searchParams;
   const session = await auth();
 
   // Verify Stripe checkout and record the join on success redirect
@@ -112,7 +131,7 @@ export default async function QuestDetailPage({
     where: { id },
     include: {
       creator: {
-        select: { id: true, name: true, reputation: true, level: true, xp: true },
+        select: { id: true, name: true, email: true, reputation: true, level: true, xp: true },
       },
       participants: {
         include: { user: { select: { id: true, name: true } } },
@@ -122,10 +141,24 @@ export default async function QuestDetailPage({
 
   if (!quest) notFound();
 
-  const hasJoined = quest.participants.some((p) => p.userId === session?.user?.id);
+  const myParticipation = session
+    ? quest.participants.find((p) => p.userId === session.user.id) ?? null
+    : null;
+  const hasJoined = !!myParticipation;
   const isCreator = quest.creatorId === session?.user?.id;
   const isFull = quest.filledSlots >= quest.maxSlots;
   const isOpen = quest.status === "OPEN";
+
+  // Check if user already filed a dispute for this quest
+  const existingDispute =
+    myParticipation && session
+      ? await prisma.dispute.findFirst({
+          where: { questId: id, filerId: session.user.id },
+        })
+      : null;
+
+  const canFileDispute =
+    hasJoined && quest.status === "IN_PROGRESS" && !existingDispute && !isCreator;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -133,6 +166,12 @@ export default async function QuestDetailPage({
         <div className="mb-6 flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-green-400">
           <CheckCircle className="h-5 w-5 shrink-0" />
           Quest promoted successfully — your listing is now featured.
+        </div>
+      )}
+      {dispute_filed === "1" && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-400">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          Dispute filed. The Game Master will review and reach out if needed.
         </div>
       )}
 
@@ -183,7 +222,9 @@ export default async function QuestDetailPage({
                     ? `Deadline: ${new Date(quest.deadline).toLocaleString()}`
                     : "No deadline"}
                 </div>
-                <div>{quest.filledSlots} / {quest.maxSlots} slots filled</div>
+                <div>
+                  {quest.filledSlots} / {quest.maxSlots} slots filled
+                </div>
                 <div>Status: {quest.status}</div>
               </div>
             </CardContent>
@@ -212,6 +253,110 @@ export default async function QuestDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Dispute filing */}
+          {canFileDispute && myParticipation && (
+            <Card className="border-yellow-500/30 bg-yellow-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-yellow-400">
+                  <AlertTriangle className="h-5 w-5" />
+                  File a Dispute
+                </CardTitle>
+                <CardDescription>
+                  Something wrong? File a dispute and the Game Master will review.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                  action={async (formData) => {
+                    "use server";
+                    const s = await auth();
+                    if (!s) redirect("/login");
+
+                    const reason = (formData.get("reason") as string)?.trim();
+                    const evidence = (formData.get("evidence") as string)?.trim() || null;
+                    if (!reason) redirect(`/quests/${id}`);
+
+                    const participant = await prisma.questParticipant.findUnique({
+                      where: { questId_userId: { questId: id, userId: s.user.id } },
+                    });
+                    if (!participant) redirect(`/quests/${id}`);
+
+                    const alreadyFiled = await prisma.dispute.findFirst({
+                      where: { questId: id, filerId: s.user.id },
+                    });
+                    if (alreadyFiled) redirect(`/quests/${id}?dispute_filed=1`);
+
+                    await prisma.dispute.create({
+                      data: {
+                        questId: id,
+                        participantId: participant.id,
+                        filerId: s.user.id,
+                        reason,
+                        evidence,
+                      },
+                    });
+
+                    // Notify creator
+                    const quest = await prisma.quest.findUnique({
+                      where: { id },
+                      include: { creator: { select: { email: true, name: true } } },
+                    });
+                    if (quest?.creator.email) {
+                      await sendDisputeFiledEmail(
+                        quest.creator.email,
+                        quest.creator.name ?? "Creator",
+                        quest.title
+                      );
+                    }
+
+                    redirect(`/quests/${id}?dispute_filed=1`);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="reason">Reason for dispute</Label>
+                    <Textarea
+                      id="reason"
+                      name="reason"
+                      placeholder="Describe the issue clearly..."
+                      rows={3}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="evidence">Evidence (optional)</Label>
+                    <Textarea
+                      id="evidence"
+                      name="evidence"
+                      placeholder="URL or description of supporting proof"
+                      rows={2}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                  >
+                    Submit Dispute
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {existingDispute && (
+            <Card className="border-yellow-500/20 bg-yellow-500/5">
+              <CardContent className="flex items-center gap-3 p-4 text-yellow-400">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span className="text-sm">
+                  You filed a dispute on{" "}
+                  {new Date(existingDispute.createdAt).toLocaleDateString()}. Status:{" "}
+                  <strong>{existingDispute.status}</strong>
+                </span>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar action */}
@@ -260,8 +405,16 @@ export default async function QuestDetailPage({
               {isCreator && quest.promoted === "NONE" && quest.status === "OPEN" && (
                 <div className="border-t border-border/50 pt-4 space-y-2">
                   <p className="text-xs text-muted-foreground">Boost visibility:</p>
-                  <PromoteQuestButton questId={quest.id} promotionLevel="FEATURED" label="Feature it — $5" />
-                  <PromoteQuestButton questId={quest.id} promotionLevel="HIGHLIGHTED" label="Highlight it — $15" />
+                  <PromoteQuestButton
+                    questId={quest.id}
+                    promotionLevel="FEATURED"
+                    label="Feature it — $5"
+                  />
+                  <PromoteQuestButton
+                    questId={quest.id}
+                    promotionLevel="HIGHLIGHTED"
+                    label="Highlight it — $15"
+                  />
                 </div>
               )}
 
@@ -286,7 +439,9 @@ export default async function QuestDetailPage({
                 </div>
                 <div>
                   <p className="font-semibold">{quest.creator.name ?? "Anonymous"}</p>
-                  <p className="text-sm text-muted-foreground">Level {quest.creator.level}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Level {quest.creator.level}
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
