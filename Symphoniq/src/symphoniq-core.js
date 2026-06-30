@@ -543,7 +543,7 @@ export function getRouteNotePackage(song, label = "") {
     `Artwork: ${readiness.art ? readiness.art.path : "NOT FOUND — attach JPG/PNG to song first"}`,
     ``,
     `## Steps`,
-    `1. Open https://routenote.com/releases/new`,
+    `1. Open https://routenote.com/upload/`,
     `2. Create new release — set type to Single (or EP/Album as needed)`,
     `3. Fill each field listed above`,
     `4. Upload the WAV audio file`,
