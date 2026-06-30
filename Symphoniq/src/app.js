@@ -1266,7 +1266,7 @@ function bindEvents() {
   });
 
   document.querySelector("[data-action='open-routenote']")?.addEventListener("click", () => {
-    window.open("https://routenote.com/releases/new", "_blank", "noopener,noreferrer");
+    window.open("https://routenote.com/upload/", "_blank", "noopener,noreferrer");
   });
 
   document.querySelectorAll("[data-action='copy-routenote-field']").forEach((button) => {
